@@ -11,7 +11,7 @@
  *  @author DUzun.Me
  *  @license ☺
  *  @version 1.0.0
- *
+ *  @git https://github.com/duzun/jAJAX
  */
 ;(function (win, String, Function, Object, Array, Date) {
 
