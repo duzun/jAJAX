@@ -4,7 +4,7 @@ jAJAX
 jQuery-like AJAX method for multiple environments, especially for chrome-extension, safari-extension, firefox-extension
 
 ## Usage
-```javascript
+```typescript
     jajax(options: object, ondone: function, onerror: function)
     /*  where
      *    options is "url" or {url:"url", dataType:"type", method: "GET", ...}, similar to jQuery.ajax(options)
