@@ -8,11 +8,11 @@
  *
  *          On Firefox there is response object instead of XHR, xhr is a plain object
  *
- *  @author DUzun.Me
- *  @license ☺
+ *  @license The ☺ License
  *  @version 1.0.1
  *  @git https://github.com/duzun/jAJAX
  *  @umd AMD, Browser, CommonJs
+ *  @author DUzun.Me
  */
 /*global XMLHttpRequest | ActiveXObject, setTimeout, clearTimeout, JSON */
 ;(function (name, root, Object, Array, Date) {
