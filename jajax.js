@@ -8,7 +8,7 @@
  *
  *          On Firefox there is response object instead of XHR, xhr is a plain object
  *
- *  @license The ☺ License
+ *  @license MIT
  *  @version 1.0.1
  *  @git https://github.com/duzun/jAJAX
  *  @umd AMD, Browser, CommonJs

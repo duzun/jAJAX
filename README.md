@@ -16,3 +16,6 @@ jQuery-like AJAX method for multiple environments, especially for chrome-extensi
 ```
 
 See: http://api.jquery.com/jquery.ajax/ for more options.
+
+## License
+MIT
