@@ -4,12 +4,12 @@
  *
  *  Ex: jajax(options: object, ondone: function, onerror: function)
  *          function ondone(result, statusText, xhr[, response]);
- *          function onerror(statusText, type: [error|parsererror|abort|timeout], xhr[, response]);
+ *          function onerror(xhr, type: "error"|"parsererror"|"abort"|"timeout", error[, response]);
  *
  *          On Firefox there is response object instead of XHR, xhr is a plain object
  *
  *  @license MIT
- *  @version 1.0.1
+ *  @version 1.0.2
  *  @git https://github.com/duzun/jAJAX
  *  @umd AMD, Browser, CommonJs
  *  @author DUzun.Me
@@ -37,10 +37,6 @@
         ,   now = typeof Date.now == FUNCTION
                     ? function () { return Date.now(); }
                     : function () { return new Date.getTime(); }
-        // ,   _startup_time_ = now()
-        // ,   _unqidc_ = 0
-        // ,   uniq = function uniq() { return ++_unqidc_ }
-        // ,   tick = function tick() { return now() - _startup_time_ }
         ;
         // -------------------------------------------------------------
         // Helpers
@@ -50,13 +46,13 @@
             if( o instanceof Array || hop.call(o, l) && typeof o[l] === 'number' && typeof o != FUNCTION ) {
                 for(i=0,l=o[l]>>>0; i<l; i++) if(hop.call(o, i)) {
                     s = o[i];
-                    if(f.call(s, i, s, o) === false) return i;
+                    if(f.call(s, i, s, o) === FALSE) return i;
                 }
             }
             else {
                 for(i in o) if(hop.call(o, i)) {
                     s = o[i];
-                    if(f.call(s, i, s, o) === false) return i;
+                    if(f.call(s, i, s, o) === FALSE) return i;
                 }
             }
             return o
@@ -69,7 +65,7 @@
         } ;
         // -------------------------------------------------------------
         var TIMERS = typeof self !== UNDEFINED && typeof self.setTimeout == FUNCTION
-                        ? self 
+                        ? self
                         : root
         ;
         if( typeof TIMERS.setTimeout != FUNCTION ) {
@@ -80,8 +76,6 @@
 
         var setTimeout    = TIMERS.setTimeout
         ,   clearTimeout  = TIMERS.clearTimeout
-        // ,   setInterval   = TIMERS.setInterval
-        // ,   clearInterval = TIMERS.clearInterval
         ;
         // -------------------------------------------------------------
         var allTypes = "*/" + "*"
@@ -98,7 +92,7 @@
         var jajax = function jajax(o,done,fail) {
             var xhr = jajax.createXHR(FALSE);
             if(!xhr) {
-                fail && fail('Couldn\'t create XHR object');
+                fail && fail(NULL, 'xhr', 'Couldn\'t create XHR object');
                 return xhr
             }
 
@@ -354,7 +348,7 @@
                         xhr = _xhr();
                         $.createXHR = _xhr;
                         $.xhr_type = type;
-                        return false;
+                        return FALSE;
                     }
                     catch( e ) { }
                 })
@@ -365,9 +359,9 @@
             $.xhr_supported = $.createXHR(FALSE);
         }
         (encodeURIComponent, JSON, jajax));
-        
+
         jajax.name = name;
-        
+
         return jajax;
     });
 }
