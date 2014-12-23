@@ -9,13 +9,13 @@
  *          On Firefox there is response object instead of XHR, xhr is a plain object
  *
  *  @license MIT
- *  @version 1.0.2
+ *  @version 1.0.3
  *  @git https://github.com/duzun/jAJAX
  *  @umd AMD, Browser, CommonJs
  *  @author DUzun.Me
  */
 /*global XMLHttpRequest | ActiveXObject, setTimeout, clearTimeout, JSON */
-;(function (name, root, Object, Array, Date) {
+;(function (name, root, Object, Array, Function, Date) {
     var undefined
     ,   NIL   = ''
     ,   UNDEFINED = undefined + NIL
@@ -33,18 +33,44 @@
         ,   FALSE = false
         ,   NULL  = null
         ,   noop  = Object.noop || function () {} // Object.noop - well, I practice such things :-)
-        ,   hop   = Object.prototype.hasOwnProperty
+        ,   __    = Object.prototype
+        ,   hop   = __.hasOwnProperty
+        ,   tos   = __.toString
         ,   now = typeof Date.now == FUNCTION
                     ? function () { return Date.now(); }
                     : function () { return new Date.getTime(); }
+        ,   LENGTH = 'length'
         ;
         // -------------------------------------------------------------
         // Helpers
+        // ---------------------------------------------------------------------------
+        var type = function type(obj) {
+            // IE gives us some surprises
+            if(obj === null) return 'Null';
+            if(obj === undefined) return 'Undefined';
+            return tos.call(obj).slice(8, -1);
+        } ;
+        var isFunction = function isFunction(obj) {
+            return obj instanceof Function || type(obj) == 'Function';
+        } ;
+        var isArray = isFunction(Array.isArray)
+            ? Array.isArray
+            : (Array.isArray = function isArray(obj) {
+                return obj instanceof Array || type(obj) == 'Array';
+            })
+        ;
+        var isArrayLike = function isArrayLike(obj) {
+            return hop.call(obj, LENGTH) && typeof obj[LENGTH] === 'number' && !isFunction(obj);
+        } ;
+        // var isString = function isString(obj) {
+            // return obj instanceof String || type(obj) == 'String';
+        // } ;
+        // -------------------------------------------------------------
         var each = function each(o, f) {
             if(!o) return o;
-            var i, s, l = 'length';
-            if( o instanceof Array || hop.call(o, l) && typeof o[l] === 'number' && typeof o != FUNCTION ) {
-                for(i=0,l=o[l]>>>0; i<l; i++) if(hop.call(o, i)) {
+            var i, s, l;
+            if ( isArray(o) || isArrayLike(o) ) {
+                for(i=0,l=o[LENGTH]>>>0; i<l; i++) if(hop.call(o, i)) {
                     s = o[i];
                     if(f.call(s, i, s, o) === FALSE) return i;
                 }
@@ -65,11 +91,12 @@
         } ;
         // -------------------------------------------------------------
         var TIMERS = typeof self !== UNDEFINED && typeof self.setTimeout == FUNCTION
-                        ? self
-                        : root
+                    ? self
+                    : root
         ;
         if( typeof TIMERS.setTimeout != FUNCTION ) {
             if( typeof require !== UNDEFINED ) {
+                // Firefox
                 TIMERS = require('sdk/timers');
             }
         }
@@ -276,11 +303,11 @@
         ;(function (escape, JSON, $) {
             function serialize(params, obj, traditional, scope) {
                 var type
-                ,   array = obj instanceof Array
-                ,   hash = obj && obj !== root && !array && Object.getPrototypeOf(obj) == Object.prototype
+                ,   array = isArray(obj)
+                ,   hash = obj && obj !== root && !array && Object.getPrototypeOf(obj) === __
                 ;
                 each(obj, function(key, value) {
-                    type = value instanceof Array ? 'array' : typeof(value);
+                    type = isArray(value) ? 'array' : typeof(value);
                     if (scope) key = traditional ? scope :
                         scope + '[' + (hash || type == 'object' || type == 'array' ? key : '') + ']'
                     // handle data in serializeArray() format
@@ -365,5 +392,5 @@
         return jajax;
     });
 }
-('jajax', this, Object, Array, Date));
+('jajax', this, Object, Array, Function, Date));
 
