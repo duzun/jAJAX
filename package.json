@@ -1,0 +1,56 @@
+{
+  "name": "jajax",
+  "version": "1.0.3",
+  "author": {
+    "name": "Dumitru Uzun",
+    "email": "contact@duzun.me",
+    "url": "http://DUzun.Me/"
+  },
+  "description": "jQuery-like AJAX method for multiple environments",
+  "keywords": [
+    "AJAX",
+    "chrome-extension",
+    "safari-extension",
+    "firefox-extension",
+    "javascript",
+    "jQuery"
+  ],
+  "main": "./jajax.js",
+  "files": [
+    "dist/",
+    "LICENSE",
+    "README.MD"
+  ],
+  "directories": {
+    "tools": "./tools",
+    "doc": "./docs",
+    "distribution": "./dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/duzun/jAJAX.git"
+  },
+  "bugs": {
+    "url": "https://github.com/duzun/jAJAX/issues"
+  },
+  "license": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/duzun/jAJAX/raw/master/LICENSE"
+    }
+  ],
+  "readmeFilename": "README.md",
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "scripts": {
+    "test": "jasmine-node spec",
+    "bump-ver": "node ./tools/bump-ver.js",
+    "build": "node ./tools/build.js",
+    "doc": "docco jajax.js"
+  },
+  "devDependencies": {
+    "jasmine-node": "1.14.x",
+    "docco": "0.6.x"
+  }
+}

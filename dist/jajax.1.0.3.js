@@ -395,5 +395,5 @@
         return jajax;
     });
 }
-('jajax', typeof global == 'undefined' ? this : global, Object, Array, Function, Date));
+('jajax', this, Object, Array, Function, Date));
 
