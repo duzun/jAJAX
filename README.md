@@ -4,6 +4,8 @@ jAJAX
 jQuery-like AJAX method for multiple environments:
 browser, chrome-extension, safari-extension, firefox-extension.
 
+You can use it even in Node.js with [node-XMLHttpRequest](https://github.com/driverdan/node-XMLHttpRequest).
+
 ## Usage
 ```typescript
 jajax(options: object, ondone: function, onerror: function)
