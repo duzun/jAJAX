@@ -28,11 +28,13 @@ For more options see [jQuery.ajax()](http://api.jquery.com/jquery.ajax/).
 
 ## Features
 
-- **No external dependencies**
+- **No external dependencies** (no jQeury required)
 - **Small footprint** (~ 2Kb minified and gziped)
 - Easy to use (see **[jQuery.ajax()](http://api.jquery.com/jquery.ajax/)**)
-- Works in **Browser Extensions**
+- Works in **Browser Extensions** as well
   (tested in chrome-extension, safari-extension, firefox-extension)
+- Can be used as a **drop in replacement for jQuery.ajax()**
+
 
 ## License
 MIT
