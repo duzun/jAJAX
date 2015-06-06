@@ -1,12 +1,12 @@
 {
   "name": "jajax.js",
   "version": "1.1.1",
+  "description": "jQuery-like AJAX method for multiple environments",
   "author": {
     "name": "Dumitru Uzun",
     "email": "contact@duzun.me",
     "url": "http://DUzun.Me/"
   },
-  "description": "jQuery-like AJAX method for multiple environments",
   "keywords": [
     "AJAX",
     "HTTP",
@@ -60,6 +60,7 @@
   "verup": {
     "files": [
       "jajax.js",
+      "bower.json",
       "README.md"
     ],
     "regs": [
