@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>jajax.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>jajax.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-comment">/**
+ *  jQuery-like AJAX for any environment
+ *  (Browser, Firefox, Chrome and Safari Extensions).
+ *
+ *  Ex: jajax(options: object, ondone: function, onerror: function)
+ *          function ondone(result, statusText, xhr[, response]);
+ *          function onerror(xhr, type: "error"|"parsererror"|"abort"|"timeout", error[, response]);
+ *
+ *          On Firefox there is response object instead of XHR, xhr is a plain object
+ *
+ *  @license MIT
+ *  @version 1.2.0
+ *  @git https://github.com/duzun/jAJAX
+ *  @umd AMD, Browser, CommonJs
+ *  @author DUzun.Me
+ */</span>
+<span class="hljs-comment">/*global XMLHttpRequest | ActiveXObject, setTimeout, clearTimeout, JSON */</span>
+;(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">name, root, Object, Array, Function, Date</span>) </span>{
+    <span class="hljs-keyword">var</span> <span class="hljs-literal">undefined</span>
+    ,   NIL   = <span class="hljs-string">''</span>
+    ,   UNDEFINED = <span class="hljs-literal">undefined</span> + NIL
+    ,   FUNCTION = <span class="hljs-string">'function'</span>
+    ;
+    (<span class="hljs-keyword">typeof</span> define != FUNCTION || !define.amd
+        ? <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">module</span> != UNDEFINED &amp;&amp; <span class="hljs-built_in">module</span>.exports
+            ? <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">deps, factory</span>) </span>{ <span class="hljs-built_in">module</span>.exports = factory(); } <span class="hljs-comment">// CommonJs</span>
+            : <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">deps, factory</span>) </span>{ root[name] = factory(); } <span class="hljs-comment">// Browser</span>
+        : define <span class="hljs-comment">// AMD</span>
+    )
+    <span class="hljs-comment">/*define*/</span>([], <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">factory</span>(<span class="hljs-params"></span>) </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> TRUE  = <span class="hljs-literal">true</span>
+        ,   FALSE = <span class="hljs-literal">false</span>
+        ,   NULL  = <span class="hljs-literal">null</span>
+        ,   noop  = <span class="hljs-built_in">Object</span>.noop || <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{} <span class="hljs-comment">// Object.noop - well, I practice such things :-)</span>
+        ,   __    = <span class="hljs-built_in">Object</span>.prototype
+        ,   hop   = __.hasOwnProperty
+        ,   tos   = __.toString
+
+        ,   now = <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">Date</span>.now == FUNCTION
+                    ? <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{ <span class="hljs-keyword">return</span> <span class="hljs-built_in">Date</span>.now(); }
+                    : <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{ <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>.getTime(); }
+
+        ,   isArray = isFunction(<span class="hljs-built_in">Array</span>.isArray)
+                ? <span class="hljs-built_in">Array</span>.isArray
+                : (<span class="hljs-built_in">Array</span>.isArray = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">isArray</span>(<span class="hljs-params">obj</span>) </span>{
+                    <span class="hljs-keyword">return</span> obj <span class="hljs-keyword">instanceof</span> <span class="hljs-built_in">Array</span> || type(obj) == <span class="hljs-string">'Array'</span>;
+                })
+
+        ,   LENGTH = <span class="hljs-string">'length'</span>
+
+        ,   version   = <span class="hljs-string">'1.2.0'</span>
+        ;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <h2 id="-">————————————————————-</h2>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> TIMERS = <span class="hljs-keyword">typeof</span> self !== UNDEFINED &amp;&amp; isFunction(self.setTimeout)
+            ? self
+            : root
+        ;
+        <span class="hljs-keyword">if</span>( !isFunction(TIMERS.setTimeout) ) {
+            <span class="hljs-keyword">if</span>( <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">require</span> !== UNDEFINED ) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Firefox</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                TIMERS = <span class="hljs-built_in">require</span>(<span class="hljs-string">'sdk/timers'</span>);
+            }
+        }
+
+        <span class="hljs-keyword">var</span> setTimeout    = TIMERS.setTimeout
+        ,   clearTimeout  = TIMERS.clearTimeout
+        ;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> allTypes = <span class="hljs-string">"*/"</span> + <span class="hljs-string">"*"</span>
+        ,   accepts = {
+                <span class="hljs-string">"*"</span> : allTypes,
+                text: <span class="hljs-string">"text/plain"</span>,
+                html: <span class="hljs-string">"text/html"</span>,
+                xml : <span class="hljs-string">"application/xml, text/xml"</span>,
+                json: <span class="hljs-string">"application/json, text/javascript"</span>
+            }
+        ;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <hr>
+<p>AJAX method itself</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> jajax = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">jajax</span>(<span class="hljs-params">o,done,fail,_u</span>) </span>{
+            <span class="hljs-keyword">var</span> xhr = jajax.createXHR(FALSE);
+            <span class="hljs-keyword">if</span> ( !xhr ) {
+                fail &amp;&amp; fail(NULL, <span class="hljs-string">'xhr'</span>, <span class="hljs-string">'Couldn\'t create XHR object'</span>);
+                <span class="hljs-keyword">return</span> xhr
+            }
+
+            <span class="hljs-keyword">if</span> ( type(o) == <span class="hljs-string">'String'</span> ) {
+                <span class="hljs-keyword">if</span> ( done &amp;&amp; type(done) == <span class="hljs-string">'Object'</span> ) {
+                    done.url = o;
+                    o    = done;
+                    done = fail;
+                    fail = _u;
+                }
+                <span class="hljs-keyword">else</span> {
+                    o = { url: o };
+                }
+            }
+
+            o = extend({
+                url        : <span class="hljs-string">''</span>,    <span class="hljs-comment">// String</span>
+                type       : <span class="hljs-string">'GET'</span>, <span class="hljs-comment">// String - alias of .method</span>
+                cache      : FALSE, <span class="hljs-comment">// Bool</span>
+                timeout    : NULL,  <span class="hljs-comment">// Number</span>
+                contentType: <span class="hljs-string">'application/x-www-form-urlencoded; charset=UTF-8'</span>, <span class="hljs-comment">// String</span>
+                dataType   : <span class="hljs-string">''</span>,    <span class="hljs-comment">// String</span>
+                mimeType   : <span class="hljs-string">''</span>,    <span class="hljs-comment">// String</span>
+                data       : NULL,  <span class="hljs-comment">// Object</span>
+                headers    : NULL,  <span class="hljs-comment">// Object</span>
+                error      : NULL,  <span class="hljs-comment">// Function</span>
+                success    : NULL   <span class="hljs-comment">// Function</span>
+            }, o);
+
+            <span class="hljs-keyword">var</span> headers = {}
+            ,   setHeader = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">name, value</span>) </span>{ headers[name.toLowerCase()] = [name, value] }
+            ,   method = o.method || o.type
+            ,   url = o.url
+            ,   abort_to
+            ,   responseType
+            ,   onerror = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error, type, xh, res</span>) </span>{
+                    <span class="hljs-keyword">if</span>(o.error) {
+                        o.error(xh || res, type, error, res);
+                    }
+                    <span class="hljs-keyword">if</span>(fail) {
+                        fail(xh || res, type, error, res);
+                    }
+                }
+            ,   onsuccecc = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">xh, result, res</span>) </span>{
+                    <span class="hljs-keyword">var</span> dataType = o.dataType || o.mimeType &amp;&amp; jajax.mimeToDataType(o.mimeType) || responseType
+                    ,   error
+                    ;
+                    <span class="hljs-keyword">try</span> {
+                        <span class="hljs-keyword">switch</span>(dataType) {
+                            <span class="hljs-keyword">case</span> <span class="hljs-string">'json'</span>: {
+                                result = <span class="hljs-string">'responseJSON'</span> <span class="hljs-keyword">in</span> xh ? xh.responseJSON : (<span class="hljs-regexp">/^\s*$/</span>.test(result) ? NULL : jajax.parseJSON(result));
+                            } <span class="hljs-keyword">break</span>;
+
+                            <span class="hljs-keyword">case</span> <span class="hljs-string">'xml'</span>: {
+                                result = xh.responseXML;
+                            } <span class="hljs-keyword">break</span>;
+
+                            <span class="hljs-keyword">case</span> <span class="hljs-string">'script'</span>: {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p><a href="http://perfectionkills.com/global-eval-what-are-the-options/">http://perfectionkills.com/global-eval-what-are-the-options/</a></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                                (<span class="hljs-number">1</span>,<span class="hljs-built_in">eval</span>)(result);
+                            } <span class="hljs-keyword">break</span>;
+
+                            <span class="hljs-keyword">case</span> <span class="hljs-string">'text'</span>:
+                            <span class="hljs-keyword">default</span>: {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>result = xh.responseText</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                            } <span class="hljs-keyword">break</span>;
+                        }
+                    } <span class="hljs-keyword">catch</span> (e) { error = e }
+
+                    <span class="hljs-keyword">if</span> (error) onerror(error, <span class="hljs-string">'parsererror'</span>, xh, res)
+                    <span class="hljs-keyword">else</span> {
+                        <span class="hljs-keyword">if</span> (o.success) {
+                            o.success(result, xh.statusText, xh, res);
+                        }
+                        <span class="hljs-keyword">if</span>(done) {
+                            done(result, xh.statusText, xh, res);
+                        }
+                    }
+                }
+            ,   oncomplete = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">xh, res</span>) </span>{
+                    abort_to &amp;&amp; clearTimeout(abort_to);
+
+                    <span class="hljs-keyword">var</span> response = xh.responseText || xh.response;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>responseType from response headers</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                    responseType = jajax.mimeToDataType(xh.getResponseHeader(<span class="hljs-string">'content-type'</span>));</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>If responseType is ‘json’, make sure there is xh.responseJSON</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                    <span class="hljs-keyword">if</span> ( responseType == <span class="hljs-string">'json'</span> &amp;&amp; !(<span class="hljs-string">'responseJSON'</span> <span class="hljs-keyword">in</span> xh) ) {
+                        <span class="hljs-keyword">if</span> ( <span class="hljs-regexp">/^\s*$/</span>.test(response) ) {
+                            xh.responseJSON = NULL;
+                        }
+                        <span class="hljs-keyword">else</span> {
+                            <span class="hljs-keyword">try</span> {
+                                xh.responseJSON = jajax.parseJSON(response);
+                            }
+                            <span class="hljs-keyword">catch</span>(err) {}
+                        }
+                    }
+
+
+                    <span class="hljs-keyword">if</span>( (xh.status &gt;= <span class="hljs-number">200</span> &amp;&amp; xh.status &lt; <span class="hljs-number">300</span>) || xh.status == <span class="hljs-number">304</span> ) {
+                        onsuccecc(xh, response, res);
+                    }
+                    <span class="hljs-keyword">else</span> {
+                        onerror(xh.statusText || NULL, xh.status ? <span class="hljs-string">'error'</span> : <span class="hljs-string">'abort'</span>, xh, res);
+                    }
+                }
+            ;
+
+            each({<span class="hljs-string">'X-Requested-With'</span>: <span class="hljs-string">'XMLHttpRequest'</span>}, setHeader);
+
+            <span class="hljs-keyword">if</span>(o.contentType) {
+                setHeader(<span class="hljs-string">'Content-Type'</span>, o.contentType);
+            }
+            setHeader(<span class="hljs-string">'Accept'</span>, (accepts[o.dataType] ? accepts[o.dataType] + <span class="hljs-string">', '</span>: <span class="hljs-string">''</span>) + allTypes + <span class="hljs-string">'; q=0.01'</span>);
+
+            each(o.headers, setHeader);
+
+            method = method.toLowerCase();
+
+            <span class="hljs-keyword">if</span> ( o.data &amp;&amp; (method == <span class="hljs-string">'get'</span> || method == <span class="hljs-string">'head'</span>) ) {
+                url += (url.indexOf(<span class="hljs-string">'?'</span>) &lt; <span class="hljs-number">0</span> ? <span class="hljs-string">'?'</span> : <span class="hljs-string">'&amp;'</span>) + jajax.param(o.data);
+                o.data = NULL;
+            }
+
+            <span class="hljs-keyword">if</span>(jajax.xhr_type == <span class="hljs-string">'REQUEST'</span>) {
+                each(o.data, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">n,v,d</span>) </span>{ <span class="hljs-keyword">if</span>(v == NULL) <span class="hljs-keyword">delete</span> d[n]; });
+                <span class="hljs-keyword">var</span> h = {
+                        url: url,
+                        content: o.data ? o.data : {},
+                        headers: {},
+                        onComplete: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">res</span>) </span>{
+                            <span class="hljs-keyword">if</span>(h.aborted) <span class="hljs-keyword">return</span>;
+                            <span class="hljs-keyword">var</span> _xhr = {
+                                <span class="hljs-string">'getResponseHeader'</span>: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">name</span>) </span>{
+                                    <span class="hljs-keyword">return</span> res.headers[name];
+                                },
+                                <span class="hljs-string">'status'</span>: res.status,
+                                <span class="hljs-string">'statusText'</span>: res.statusText,
+                                <span class="hljs-string">'responseText'</span>: res.text,
+                                <span class="hljs-string">'responseJSON'</span>: res.json
+                            };
+                            oncomplete(_xhr, res);
+                        }
+                    }
+                ;
+                each(headers, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">i,a</span>) </span>{ <span class="hljs-keyword">if</span>(a[<span class="hljs-number">0</span>] &amp;&amp; a[<span class="hljs-number">0</span>] != NULL) h.headers[a[<span class="hljs-number">0</span>]] = a[<span class="hljs-number">1</span>] });
+                <span class="hljs-keyword">if</span>(o.contentType) h.contentType = o.contentType
+
+                <span class="hljs-keyword">if</span> (o.timeout &gt; <span class="hljs-number">0</span>) abort_to = setTimeout(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+                    h.aborted = now();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>xhr.abort(); // @todo: abort request</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                    onerror(NULL, <span class="hljs-string">'timeout'</span>, xhr);
+                }, o.timeout);
+
+                <span class="hljs-keyword">try</span> {
+                    xhr.Request(h)[method]();
+                }
+                <span class="hljs-keyword">catch</span>(er) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>If method not supported. try to override it</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                    <span class="hljs-keyword">try</span> {
+                        h.headers[<span class="hljs-string">'X-HTTP-Method-Override'</span>] = method.toUpperCase();
+                        xhr.Request(h)[<span class="hljs-string">'post'</span>]();
+                    }
+                    <span class="hljs-keyword">catch</span>(er) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>If override doesn’t work, try XHR - synchronous in FF</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                        <span class="hljs-keyword">switch</span> (method) {
+                            <span class="hljs-keyword">case</span> <span class="hljs-string">'delete'</span>: {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Firefox REQUEST object doesn’t support DELETE,
+need to create manual xhr object</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                                <span class="hljs-keyword">var</span> XHR = <span class="hljs-built_in">require</span>(<span class="hljs-string">"sdk/net/xhr"</span>);
+                                <span class="hljs-keyword">var</span> req = <span class="hljs-keyword">new</span> XHR.XMLHttpRequest();
+                                req.open(method, url);
+                                each(h.headers, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">n,v</span>) </span>{ req.setRequestHeader(n, v) });
+                                req.send();
+                                oncomplete(req);
+                            } <span class="hljs-keyword">break</span>;
+                            <span class="hljs-keyword">default</span>: <span class="hljs-keyword">throw</span> er;
+                        }
+                    }
+                }
+            }
+            <span class="hljs-keyword">else</span> {
+                xhr.open(method, url, TRUE);
+
+                each(headers, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">i,a</span>) </span>{ <span class="hljs-keyword">if</span>(a[<span class="hljs-number">1</span>] != NULL) xhr.setRequestHeader( a[<span class="hljs-number">0</span>], a[<span class="hljs-number">1</span>] + NIL ) });
+
+                <span class="hljs-keyword">if</span> (o.timeout &gt; <span class="hljs-number">0</span>) abort_to = setTimeout(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+                    xhr.onreadystatechange = noop;
+                    xhr.abort();
+                    onerror(NULL, <span class="hljs-string">'timeout'</span>, xhr);
+                }, o.timeout);
+
+                <span class="hljs-keyword">var</span> callback = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+                    <span class="hljs-keyword">if</span> (xhr.readyState == <span class="hljs-number">4</span>) {
+                        xhr.onreadystatechange = noop;
+                        oncomplete(xhr);
+                    }
+                };
+
+                xhr.send(o.data ? <span class="hljs-keyword">typeof</span> o.data == <span class="hljs-string">'string'</span> ? o.data : jajax.param(o.data) : NULL);
+
+                <span class="hljs-keyword">if</span>(xhr.readyState === <span class="hljs-number">4</span>) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>(IE6 &amp; IE7) if it’s in cache and has been
+retrieved directly we need to fire the callback</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                    setTimeout( callback );
+                }
+                <span class="hljs-keyword">else</span> {
+                    xhr.onreadystatechange = callback;
+                }
+            }
+
+            <span class="hljs-keyword">return</span> xhr;
+        };</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <hr>
+<h2 id="helpers">Helpers</h2>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">type</span>(<span class="hljs-params">obj</span>) </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>IE gives us some surprises</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">if</span>(obj === <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> <span class="hljs-string">'Null'</span>;
+            <span class="hljs-keyword">if</span>(obj === <span class="hljs-literal">undefined</span>) <span class="hljs-keyword">return</span> <span class="hljs-string">'Undefined'</span>;
+            <span class="hljs-keyword">return</span> tos.call(obj).slice(<span class="hljs-number">8</span>, -<span class="hljs-number">1</span>);
+        }
+        <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">isFunction</span>(<span class="hljs-params">obj</span>) </span>{
+            <span class="hljs-keyword">return</span> obj <span class="hljs-keyword">instanceof</span> <span class="hljs-built_in">Function</span> || type(obj) == <span class="hljs-string">'Function'</span>;
+        }
+        <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">isArrayLike</span>(<span class="hljs-params">obj</span>) </span>{
+            <span class="hljs-keyword">return</span> hop.call(obj, LENGTH) &amp;&amp; <span class="hljs-keyword">typeof</span> obj[LENGTH] === <span class="hljs-string">'number'</span> &amp;&amp; !isFunction(obj);
+        }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>var isString = function isString(obj) {
+return obj instanceof String || type(obj) == ‘String’;</p>
+<h2 id="-">} ;</h2>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">each</span>(<span class="hljs-params">o, f</span>) </span>{
+            <span class="hljs-keyword">if</span>(!o) <span class="hljs-keyword">return</span> o;
+            <span class="hljs-keyword">var</span> i, s, l;
+            <span class="hljs-keyword">if</span> ( isArray(o) || isArrayLike(o) ) {
+                <span class="hljs-keyword">for</span>(i=<span class="hljs-number">0</span>,l=o[LENGTH]&gt;&gt;&gt;<span class="hljs-number">0</span>; i&lt;l; i++) <span class="hljs-keyword">if</span>(hop.call(o, i)) {
+                    s = o[i];
+                    <span class="hljs-keyword">if</span>(f.call(s, i, s, o) === FALSE) <span class="hljs-keyword">return</span> i;
+                }
+            }
+            <span class="hljs-keyword">else</span> {
+                <span class="hljs-keyword">for</span>(i <span class="hljs-keyword">in</span> o) <span class="hljs-keyword">if</span>(hop.call(o, i)) {
+                    s = o[i];
+                    <span class="hljs-keyword">if</span>(f.call(s, i, s, o) === FALSE) <span class="hljs-keyword">return</span> i;
+                }
+            }
+            <span class="hljs-keyword">return</span> o
+        }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">extend</span>(<span class="hljs-params">o</span>) </span>{
+            <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">cpy</span>(<span class="hljs-params">i,s</span>) </span>{ o[i] = s };
+            each(<span class="hljs-built_in">arguments</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">i,a</span>) </span>{ i &amp;&amp; each(a, cpy) });
+            <span class="hljs-keyword">return</span> o
+        }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        ;(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">escape, JSON, $</span>) </span>{
+            <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">serialize</span>(<span class="hljs-params">params, obj, traditional, scope</span>) </span>{
+                <span class="hljs-keyword">var</span> type
+                ,   array = isArray(obj)
+                ,   hash = obj &amp;&amp; obj !== root &amp;&amp; !array &amp;&amp; <span class="hljs-built_in">Object</span>.getPrototypeOf(obj) === __
+                ;
+                each(obj, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">key, value</span>) </span>{
+                    type = isArray(value) ? <span class="hljs-string">'array'</span> : <span class="hljs-keyword">typeof</span>(value);
+                    <span class="hljs-keyword">if</span> (scope) key = traditional ? scope :
+                        scope + <span class="hljs-string">'['</span> + (hash || type == <span class="hljs-string">'object'</span> || type == <span class="hljs-string">'array'</span> ? key : <span class="hljs-string">''</span>) + <span class="hljs-string">']'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>handle data in serializeArray() format</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                    <span class="hljs-keyword">if</span> (!scope &amp;&amp; array) {
+                        params.add(value.name, value.value);
+                    }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>recurse into nested objects</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (type == <span class="hljs-string">"array"</span> || (!traditional &amp;&amp; type == <span class="hljs-string">"object"</span>)) {
+                        serialize(params, value, traditional, key);
+                    }
+                    <span class="hljs-keyword">else</span> {
+                        params.add(key, value);
+                    }
+                })
+            };
+
+            $.param = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">obj, traditional</span>) </span>{
+                <span class="hljs-keyword">var</span> params = [];
+                params.add = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">k, v</span>) </span>{ <span class="hljs-keyword">this</span>.push( <span class="hljs-built_in">escape</span>(k) + ( v == NULL ? <span class="hljs-string">''</span> : <span class="hljs-string">'='</span> + <span class="hljs-built_in">escape</span>(v) ) ) };
+                serialize(params, obj, traditional);
+                <span class="hljs-keyword">return</span> params.join(<span class="hljs-string">'&amp;'</span>).replace(<span class="hljs-regexp">/%20/g</span>, <span class="hljs-string">'+'</span>);
+            };
+
+            <span class="hljs-keyword">var</span> scriptTypeRE = <span class="hljs-regexp">/^(?:text|application)\/javascript/i</span>
+            ,   xmlTypeRE = <span class="hljs-regexp">/^(?:text|application)\/xml/i</span>
+            ,   jsonType = <span class="hljs-string">'application/json'</span>
+            ,   htmlType = <span class="hljs-string">'text/html'</span>
+            ;
+            $.mimeToDataType = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">mime</span>) </span>{
+                <span class="hljs-keyword">if</span> (mime) mime = mime.split(<span class="hljs-string">';'</span>, <span class="hljs-number">2</span>)[<span class="hljs-number">0</span>]
+                <span class="hljs-keyword">return</span>  mime &amp;&amp; (
+                            mime == htmlType ? <span class="hljs-string">'html'</span> :
+                            mime == jsonType ? <span class="hljs-string">'json'</span> :
+                            scriptTypeRE.test(mime) ? <span class="hljs-string">'script'</span> :
+                            xmlTypeRE.test(mime) &amp;&amp; <span class="hljs-string">'xml'</span>
+                        ) || <span class="hljs-string">'text'</span>
+            };
+
+            <span class="hljs-keyword">var</span> _jdec = <span class="hljs-built_in">JSON</span> &amp;&amp; <span class="hljs-built_in">JSON</span>.parse || root.json_decode;
+            $.parseJSON = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">text</span>) </span>{
+                <span class="hljs-keyword">try</span> { <span class="hljs-keyword">return</span> _jdec(text) }
+                <span class="hljs-keyword">catch</span>(err) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>Try to remove one line comments</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                    <span class="hljs-keyword">var</span> txt = text.replace(<span class="hljs-regexp">/[\n\r]+\s*\/\/[^\n\r]*/g</span>, <span class="hljs-string">''</span>);
+                    <span class="hljs-keyword">if</span>(txt != text) {
+                        <span class="hljs-keyword">return</span> _jdec(txt);
+                    }
+                    <span class="hljs-keyword">throw</span> err
+                }
+            }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>Functions to create xhrs</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            $.createXHR = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">xhr</span>) </span>{
+                <span class="hljs-keyword">var</span> meths = {
+                    XMLHttpRequest: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">_XMLHttpRequest</span>(<span class="hljs-params"></span>) </span>{ <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> root.XMLHttpRequest() }
+                  , MSXML2 : <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">_MS2XMLHTTP</span>(<span class="hljs-params"></span>)  </span>{ <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ActiveXObject( <span class="hljs-string">'Msxml2.XMLHTTP'</span> ) }
+                  , MSXML  : <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">_MSXMLHTTP</span>(<span class="hljs-params"></span>)   </span>{ <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ActiveXObject( <span class="hljs-string">'Microsoft.XMLHTTP'</span> ) }
+                  , MSXML24: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">_MS2XMLHTTP4</span>(<span class="hljs-params"></span>) </span>{ <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ActiveXObject( <span class="hljs-string">'Msxml2.XMLHTTP.4.0'</span> ) }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>Lacks DELETE method</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                  , REQUEST: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">_REQUEST</span>(<span class="hljs-params"></span>) </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>synchronous only and experimental
+var XHR = require(“sdk/net/xhr”);</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+                        <span class="hljs-keyword">var</span> xhr = _REQUEST.xhr || (_REQUEST.xhr = <span class="hljs-built_in">require</span>(<span class="hljs-string">"sdk/request"</span>));
+                        <span class="hljs-keyword">return</span> xhr
+                    }
+                }
+                each(meths, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">type, _xhr</span>) </span>{
+                    <span class="hljs-keyword">try</span> {
+                        xhr = _xhr();
+                        $.createXHR = _xhr;
+                        $.xhr_type = type;
+                        <span class="hljs-keyword">return</span> FALSE;
+                    }
+                    <span class="hljs-keyword">catch</span>( e ) { }
+                })
+                <span class="hljs-keyword">return</span> xhr
+            };</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p>Check if XHR is supported</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            $.xhr_supported = $.createXHR(FALSE);
+        }
+        (<span class="hljs-built_in">encodeURIComponent</span>, <span class="hljs-built_in">JSON</span>, jajax));
+
+        jajax.name = name;
+        jajax.version = version;
+
+        <span class="hljs-keyword">return</span> jajax;
+    });
+}
+(<span class="hljs-string">'jajax'</span>, <span class="hljs-keyword">typeof</span> global == <span class="hljs-string">'undefined'</span> ? <span class="hljs-keyword">this</span> : global, <span class="hljs-built_in">Object</span>, <span class="hljs-built_in">Array</span>, <span class="hljs-built_in">Function</span>, <span class="hljs-built_in">Date</span>));</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
