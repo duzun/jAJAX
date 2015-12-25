@@ -541,7 +541,7 @@ retrieved directly we need to fire the callback</p>
             
             <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">if</span>(obj === <span class="hljs-literal">null</span>) <span class="hljs-keyword">return</span> <span class="hljs-string">'Null'</span>;
             <span class="hljs-keyword">if</span>(obj === <span class="hljs-literal">undefined</span>) <span class="hljs-keyword">return</span> <span class="hljs-string">'Undefined'</span>;
-            <span class="hljs-keyword">return</span> tos.call(obj).slice(<span class="hljs-number">8</span>, -<span class="hljs-number">1</span>);
+            <span class="hljs-keyword">return</span> tos.call(obj).slice(<span class="hljs-number">8</span>, <span class="hljs-number">-1</span>);
         }
         <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">isFunction</span>(<span class="hljs-params">obj</span>) </span>{
             <span class="hljs-keyword">return</span> obj <span class="hljs-keyword">instanceof</span> <span class="hljs-built_in">Function</span> || type(obj) == <span class="hljs-string">'Function'</span>;
