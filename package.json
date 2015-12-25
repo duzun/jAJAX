@@ -49,9 +49,9 @@
     "doc": "docco jajax.js"
   },
   "devDependencies": {
-    "jasmine-node": "1.14.x",
-    "verup": "1.x.x",
-    "docco": "0.6.x"
+    "docco": "^0.7",
+    "jasmine-node": "1.14",
+    "verup": "1.x"
   },
   "verup": {
     "files": [
