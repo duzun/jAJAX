@@ -41,7 +41,7 @@
  *          On Firefox there is response object instead of XHR, xhr is a plain object
  *
  *  @license MIT
- *  @version 1.2.1
+ *  @version 1.3.2
  *  @git https://github.com/duzun/jAJAX
  *  @umd AMD, Browser, CommonJs
  *  @author DUzun.Me
@@ -107,7 +107,7 @@
 
         ,   LENGTH = <span class="hljs-string">'length'</span>
 
-        ,   version   = <span class="hljs-string">'1.2.1'</span>
+        ,   version   = <span class="hljs-string">'1.3.2'</span>
         ;</pre></div></div>
             
         </li>
@@ -240,9 +240,9 @@
             </div>
             
             <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">const</span> jajax = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">jajax</span>(<span class="hljs-params">o,done,fail,_u</span>) </span>{
-            <span class="hljs-keyword">const</span> xhr = jajax.createXHR(FALSE);
+            <span class="hljs-keyword">let</span> xhr = jajax.createXHR(FALSE);
             <span class="hljs-keyword">if</span> ( !xhr ) {
-                fail &amp;&amp; fail(NULL, <span class="hljs-string">'xhr'</span>, <span class="hljs-string">'Couldn\'t create XHR object'</span>);
+                fail &amp;&amp; fail(NULL, <span class="hljs-string">'xhr'</span>, <span class="hljs-string">`Couldn't create XHR object`</span>);
                 <span class="hljs-keyword">return</span> xhr;
             }
 
@@ -278,12 +278,27 @@
             ,   url = o.url
             ,   abort_to
             ,   responseType
+            ,   resolve, reject, then, _catch
             ,   onerror = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error, type, xh, res</span>) </span>{
                     <span class="hljs-keyword">if</span>(o.error) {
                         o.error(xh || res, type, error, res);
                     }
                     <span class="hljs-keyword">if</span>(fail) {
                         fail(xh || res, type, error, res);
+                    }
+                    <span class="hljs-keyword">if</span> ( reject ) {
+                        <span class="hljs-keyword">if</span> ( !error ) {
+                            <span class="hljs-keyword">if</span> ( type ) {
+                                error = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">`jajax error: <span class="hljs-subst">${type}</span>`</span>);
+                                error.type = type;
+                            }
+                            <span class="hljs-keyword">else</span> {
+                                error = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">`jajax error: unknown`</span>);
+                            }
+                            error.xhr = xh || res;
+                            error.response = res;
+                        }
+                        reject(error);
                     }
                 }
             ,   onsuccecc = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">xh, result, res</span>) </span>{
@@ -348,6 +363,9 @@
                         <span class="hljs-keyword">if</span>(done) {
                             done(result, xh.statusText, xh, res);
                         }
+                        <span class="hljs-keyword">if</span> ( resolve ) {
+                            resolve(result);
+                        }
                     }
                 }
             ,   oncomplete = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">xh, res</span>) </span>{
@@ -404,6 +422,15 @@
                     }
                 }
             ;
+
+            <span class="hljs-keyword">if</span> ( <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">Promise</span> == <span class="hljs-string">'function'</span> ) {
+                <span class="hljs-keyword">let</span> prom = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Promise</span>(<span class="hljs-function">(<span class="hljs-params">_resolve, _reject</span>) =&gt;</span> {
+                    resolve = _resolve;
+                    reject = _reject;
+                });
+                then = prom.then.bind(prom);
+                _catch = prom.catch.bind(prom);
+            }
 
             each({<span class="hljs-string">'X-Requested-With'</span>: <span class="hljs-string">'XMLHttpRequest'</span>}, setHeader);
 
@@ -464,8 +491,10 @@
             <div class="content"><div class='highlight'><pre>                    onerror(NULL, <span class="hljs-string">'timeout'</span>, xhr);
                 }, o.timeout);
 
+                <span class="hljs-keyword">let</span> _xhr;
                 <span class="hljs-keyword">try</span> {
-                    xhr.Request(h)[method]();
+                    _xhr = xhr.Request(h);
+                    _xhr[method]();
                 }
                 <span class="hljs-keyword">catch</span>(er) {</pre></div></div>
             
@@ -484,7 +513,8 @@
             
             <div class="content"><div class='highlight'><pre>                    <span class="hljs-keyword">try</span> {
                         h.headers[<span class="hljs-string">'X-HTTP-Method-Override'</span>] = method.toUpperCase();
-                        xhr.Request(h)[<span class="hljs-string">'post'</span>]();
+                        _xhr = xhr.Request(h);
+                        _xhr.post();
                     }
                     <span class="hljs-keyword">catch</span>(er) {</pre></div></div>
             
@@ -519,15 +549,18 @@ need to create manual xhr object</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>                                <span class="hljs-keyword">const</span> XHR = <span class="hljs-built_in">require</span>(<span class="hljs-string">"sdk/net/xhr"</span>);
-                                <span class="hljs-keyword">const</span> req = <span class="hljs-keyword">new</span> XHR.XMLHttpRequest();
-                                req.open(method, url);
-                                each(h.headers, (n,v) =&gt; { req.setRequestHeader(n, v); });
-                                req.send();
-                                oncomplete(req);
+                                _xhr = <span class="hljs-keyword">new</span> XHR.XMLHttpRequest();
+                                _xhr.open(method, url);
+                                each(h.headers, (n,v) =&gt; { _xhr.setRequestHeader(n, v); });
+                                _xhr.send();
+                                oncomplete(_xhr);
                             } <span class="hljs-keyword">break</span>;
                             <span class="hljs-keyword">default</span>: <span class="hljs-keyword">throw</span> er;
                         }
                     }
+                }
+                <span class="hljs-keyword">if</span> ( _xhr ) {
+                    xhr = _xhr;
                 }
             }
             <span class="hljs-keyword">else</span> {
@@ -571,6 +604,11 @@ retrieved directly we need to fire the callback</p>
                 <span class="hljs-keyword">else</span> {
                     xhr.onreadystatechange = callback;
                 }
+            }
+
+            <span class="hljs-keyword">if</span> ( then &amp;&amp; !xhr.then ) {
+                xhr.then = then;
+                <span class="hljs-keyword">if</span> ( _catch ) xhr.catch = _catch;
             }
 
             <span class="hljs-keyword">return</span> xhr;
@@ -869,7 +907,8 @@ return obj instanceof String || type(obj) == ‘String’;</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-35">&#182;</a>
               </div>
-              <p>Lacks DELETE method</p>
+              <p>@deprecated
+Lacks DELETE method</p>
 
             </div>
             
@@ -892,6 +931,24 @@ var XHR = require(“sdk/net/xhr”);</p>
             <div class="content"><div class='highlight'><pre>
                         <span class="hljs-keyword">return</span> <span class="hljs-built_in">require</span>(<span class="hljs-string">"sdk/request"</span>);
                     }
+                  , node_XMLHttpRequest() {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-37">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <p><a href="https://github.com/driverdan/node-XMLHttpRequest">https://github.com/driverdan/node-XMLHttpRequest</a></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                        <span class="hljs-keyword">const</span> { XMLHttpRequest } = <span class="hljs-built_in">require</span>(<span class="hljs-string">"xmlhttprequest"</span>);
+                        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> XMLHttpRequest();
+                    }
                 };
                 each(meths, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">type, _xhr</span>) </span>{
                     <span class="hljs-keyword">try</span> {
@@ -908,11 +965,11 @@ var XHR = require(“sdk/net/xhr”);</p>
         </li>
         
         
-        <li id="section-37">
+        <li id="section-38">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-37">&#182;</a>
+                <a class="pilcrow" href="#section-38">&#182;</a>
               </div>
               <p>Check if XHR is supported</p>
 

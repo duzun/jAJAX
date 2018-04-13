@@ -1,6 +1,6 @@
 /*
  MIT
-  @version 1.3.1
+  @version 1.3.2
   @git https://github.com/duzun/jAJAX
   @umd AMD, Browser, CommonJs
   @author DUzun.Me
@@ -29,7 +29,7 @@
       return obj instanceof Array || type(obj) == "Array";
     };
     var LENGTH = "length";
-    var version = "1.3.1";
+    var version = "1.3.2";
     var TIMERS = typeof self !== UNDEFINED && isFunction(self.setTimeout) ? self : root;
     if (!isFunction(TIMERS.setTimeout)) {
       if (typeof require !== UNDEFINED) {
@@ -60,12 +60,25 @@
       o = extend({url:"", type:"GET", cache:FALSE, timeout:NULL, contentType:"application/x-www-form-urlencoded; charset=UTF-8", dataType:"", mimeType:"", data:NULL, headers:NULL, error:NULL, success:NULL}, o);
       var headers = {}, setHeader = function(name, value) {
         headers[name.toLowerCase()] = [name, value];
-      }, method = o.method || o.type, url = o.url, abort_to, responseType, onerror = function(error, type, xh, res) {
+      }, method = o.method || o.type, url = o.url, abort_to, responseType, resolve, reject, then, _catch, onerror = function(error, type, xh, res) {
         if (o.error) {
           o.error(xh || res, type, error, res);
         }
         if (fail) {
           fail(xh || res, type, error, res);
+        }
+        if (reject) {
+          if (!error) {
+            if (type) {
+              error = new Error("jajax error: " + type);
+              error.type = type;
+            } else {
+              error = new Error("jajax error: unknown");
+            }
+            error.xhr = xh || res;
+            error.response = res;
+          }
+          reject(error);
         }
       }, onsuccecc = function(xh, result, res) {
         var dataType = o.dataType || o.mimeType && jajax.mimeToDataType(o.mimeType) || responseType, error;
@@ -104,6 +117,9 @@
           if (done) {
             done(result, xh.statusText, xh, res);
           }
+          if (resolve) {
+            resolve(result);
+          }
         }
       }, oncomplete = function(xh, res) {
         abort_to && clearTimeout(abort_to);
@@ -125,6 +141,14 @@
           onerror(xh.statusText || NULL, xh.status ? "error" : "abort", xh, res);
         }
       };
+      if (typeof Promise == "function") {
+        var prom = new Promise(function(_resolve, _reject) {
+          resolve = _resolve;
+          reject = _reject;
+        });
+        then = prom.then.bind(prom);
+        _catch = prom["catch"].bind(prom);
+      }
       each({"X-Requested-With":"XMLHttpRequest"}, setHeader);
       if (o.contentType) {
         setHeader("Content-Type", o.contentType);
@@ -165,30 +189,36 @@
             onerror(NULL, "timeout", xhr);
           }, o.timeout);
         }
+        var _xhr;
         try {
-          xhr.Request(h)[method]();
+          _xhr = xhr.Request(h);
+          _xhr[method]();
         } catch (er$0) {
           try {
             h.headers["X-HTTP-Method-Override"] = method.toUpperCase();
-            xhr.Request(h)["post"]();
+            _xhr = xhr.Request(h);
+            _xhr.post();
           } catch (er) {
             switch(method) {
               case "delete":
                 {
                   var XHR = require("sdk/net/xhr");
-                  var req = new XHR.XMLHttpRequest;
-                  req.open(method, url);
+                  _xhr = new XHR.XMLHttpRequest;
+                  _xhr.open(method, url);
                   each(h.headers, function(n, v) {
-                    req.setRequestHeader(n, v);
+                    _xhr.setRequestHeader(n, v);
                   });
-                  req.send();
-                  oncomplete(req);
+                  _xhr.send();
+                  oncomplete(_xhr);
                 }
                 break;
               default:
                 throw er;
             }
           }
+        }
+        if (_xhr) {
+          xhr = _xhr;
         }
       } else {
         xhr.open(method, url, TRUE);
@@ -215,6 +245,12 @@
           setTimeout(callback);
         } else {
           xhr.onreadystatechange = callback;
+        }
+      }
+      if (then && !xhr.then) {
+        xhr.then = then;
+        if (_catch) {
+          xhr["catch"] = _catch;
         }
       }
       return xhr;

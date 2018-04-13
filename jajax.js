@@ -9,7 +9,7 @@
  *          On Firefox there is response object instead of XHR, xhr is a plain object
  *
  *  @license MIT
- *  @version 1.3.1
+ *  @version 1.3.2
  *  @git https://github.com/duzun/jAJAX
  *  @umd AMD, Browser, CommonJs
  *  @author DUzun.Me
@@ -50,7 +50,7 @@
 
         ,   LENGTH = 'length'
 
-        ,   version   = '1.3.1'
+        ,   version   = '1.3.2'
         ;
         // -------------------------------------------------------------
         // -------------------------------------------------------------
@@ -83,7 +83,7 @@
         // -------------------------------------------------------------
         // AJAX method itself
         const jajax = function jajax(o,done,fail,_u) {
-            const xhr = jajax.createXHR(FALSE);
+            let xhr = jajax.createXHR(FALSE);
             if ( !xhr ) {
                 fail && fail(NULL, 'xhr', `Couldn't create XHR object`);
                 return xhr;
@@ -121,12 +121,27 @@
             ,   url = o.url
             ,   abort_to
             ,   responseType
+            ,   resolve, reject, then, _catch
             ,   onerror = function (error, type, xh, res) {
                     if(o.error) {
                         o.error(xh || res, type, error, res);
                     }
                     if(fail) {
                         fail(xh || res, type, error, res);
+                    }
+                    if ( reject ) {
+                        if ( !error ) {
+                            if ( type ) {
+                                error = new Error(`jajax error: ${type}`);
+                                error.type = type;
+                            }
+                            else {
+                                error = new Error(`jajax error: unknown`);
+                            }
+                            error.xhr = xh || res;
+                            error.response = res;
+                        }
+                        reject(error);
                     }
                 }
             ,   onsuccecc = function (xh, result, res) {
@@ -165,6 +180,9 @@
                         if(done) {
                             done(result, xh.statusText, xh, res);
                         }
+                        if ( resolve ) {
+                            resolve(result);
+                        }
                     }
                 }
             ,   oncomplete = function (xh, res) {
@@ -197,6 +215,15 @@
                     }
                 }
             ;
+
+            if ( typeof Promise == 'function' ) {
+                let prom = new Promise((_resolve, _reject) => {
+                    resolve = _resolve;
+                    reject = _reject;
+                });
+                then = prom.then.bind(prom);
+                _catch = prom.catch.bind(prom);
+            }
 
             each({'X-Requested-With': 'XMLHttpRequest'}, setHeader);
 
@@ -244,14 +271,17 @@
                     onerror(NULL, 'timeout', xhr);
                 }, o.timeout);
 
+                let _xhr;
                 try {
-                    xhr.Request(h)[method]();
+                    _xhr = xhr.Request(h);
+                    _xhr[method]();
                 }
                 catch(er) {
                     // If method not supported. try to override it
                     try {
                         h.headers['X-HTTP-Method-Override'] = method.toUpperCase();
-                        xhr.Request(h)['post']();
+                        _xhr = xhr.Request(h);
+                        _xhr.post();
                     }
                     catch(er) {
                         // If override doesn't work, try XHR - synchronous in FF
@@ -260,15 +290,18 @@
                                 // Firefox REQUEST object doesn't support DELETE,
                                 // need to create manual xhr object
                                 const XHR = require("sdk/net/xhr");
-                                const req = new XHR.XMLHttpRequest();
-                                req.open(method, url);
-                                each(h.headers, (n,v) => { req.setRequestHeader(n, v); });
-                                req.send();
-                                oncomplete(req);
+                                _xhr = new XHR.XMLHttpRequest();
+                                _xhr.open(method, url);
+                                each(h.headers, (n,v) => { _xhr.setRequestHeader(n, v); });
+                                _xhr.send();
+                                oncomplete(_xhr);
                             } break;
                             default: throw er;
                         }
                     }
+                }
+                if ( _xhr ) {
+                    xhr = _xhr;
                 }
             }
             else {
@@ -299,6 +332,11 @@
                 else {
                     xhr.onreadystatechange = callback;
                 }
+            }
+
+            if ( then && !xhr.then ) {
+                xhr.then = then;
+                if ( _catch ) xhr.catch = _catch;
             }
 
             return xhr;
@@ -416,6 +454,8 @@
                   , MSXML2 : () => new ActiveXObject( 'Msxml2.XMLHTTP' )
                   , MSXML  : () => new ActiveXObject( 'Microsoft.XMLHTTP' )
                   , MSXML24: () => new ActiveXObject( 'Msxml2.XMLHTTP.4.0' )
+
+                    // @deprecated
                     // Lacks DELETE method
                   , REQUEST() {
                         // synchronous only and experimental
