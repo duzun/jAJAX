@@ -9,7 +9,7 @@
  *          On Firefox there is response object instead of XHR, xhr is a plain object
  *
  *  @license MIT
- *  @version 1.3.0
+ *  @version 1.3.1
  *  @git https://github.com/duzun/jAJAX
  *  @umd AMD, Browser, CommonJs
  *  @author DUzun.Me
@@ -50,7 +50,7 @@
 
         ,   LENGTH = 'length'
 
-        ,   version   = '1.3.0'
+        ,   version   = '1.3.1'
         ;
         // -------------------------------------------------------------
         // -------------------------------------------------------------
@@ -85,7 +85,7 @@
         const jajax = function jajax(o,done,fail,_u) {
             const xhr = jajax.createXHR(FALSE);
             if ( !xhr ) {
-                fail && fail(NULL, 'xhr', 'Couldn\'t create XHR object');
+                fail && fail(NULL, 'xhr', `Couldn't create XHR object`);
                 return xhr;
             }
 
@@ -422,6 +422,11 @@
                         // var XHR = require("sdk/net/xhr");
 
                         return require("sdk/request");
+                    }
+                  , node_XMLHttpRequest() {
+                        // https://github.com/driverdan/node-XMLHttpRequest
+                        const { XMLHttpRequest } = require("xmlhttprequest");
+                        return new XMLHttpRequest();
                     }
                 };
                 each(meths, function (type, _xhr) {

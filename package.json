@@ -1,6 +1,6 @@
 {
   "name": "jajax.js",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "jQuery-like AJAX method for multiple environments",
   "author": {
     "name": "Dumitru Uzun",
@@ -53,6 +53,9 @@
     "verup": "verup",
     "build": "npm test && gccs --compilation_level WHITESPACE_ONLY --formatting pretty_print -- jajax.js dist/jajax.js && gccs dist/jajax.js",
     "doc": "docco jajax.js"
+  },
+  "peerDependencies": {
+    "xmlhttprequest": "*"
   },
   "devDependencies": {
     "docco": "^0.7",

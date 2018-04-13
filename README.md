@@ -32,7 +32,7 @@ For more options see [jQuery.ajax()](https://api.jquery.com/jquery.ajax/).
 ## Features
 
 - **No external dependencies** (no jQeury required)
-- **Small footprint** (~ 2Kb minified and gziped)
+- **Small footprint** (~ 2.5Kb minified and gziped)
 - Easy to use (see **[jQuery.ajax()](https://api.jquery.com/jquery.ajax/)**)
 - Works in **Browser Extensions** as well
   (tested in chrome-extension, safari-extension, firefox-extension)

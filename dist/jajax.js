@@ -1,6 +1,6 @@
 /*
  MIT
-  @version 1.3.0
+  @version 1.3.1
   @git https://github.com/duzun/jAJAX
   @umd AMD, Browser, CommonJs
   @author DUzun.Me
@@ -29,7 +29,7 @@
       return obj instanceof Array || type(obj) == "Array";
     };
     var LENGTH = "length";
-    var version = "1.3.0";
+    var version = "1.3.1";
     var TIMERS = typeof self !== UNDEFINED && isFunction(self.setTimeout) ? self : root;
     if (!isFunction(TIMERS.setTimeout)) {
       if (typeof require !== UNDEFINED) {
@@ -329,6 +329,10 @@
           return new ActiveXObject("Msxml2.XMLHTTP.4.0");
         }, REQUEST:function() {
           return require("sdk/request");
+        }, node_XMLHttpRequest:function() {
+          var $jscomp$destructuring$var1 = require("xmlhttprequest");
+          var XMLHttpRequest = $jscomp$destructuring$var1.XMLHttpRequest;
+          return new XMLHttpRequest;
         }};
         each(meths, function(type, _xhr) {
           try {
