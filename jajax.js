@@ -9,14 +9,15 @@
  *          On Firefox there is response object instead of XHR, xhr is a plain object
  *
  *  @license MIT
- *  @version 1.2.0
+ *  @version 1.3.0
  *  @git https://github.com/duzun/jAJAX
  *  @umd AMD, Browser, CommonJs
  *  @author DUzun.Me
  */
-/*global XMLHttpRequest | ActiveXObject, setTimeout, clearTimeout, JSON */
+/*jshint esversion: 6*/
+/*global self, global, ActiveXObject, JSON, define, module, require*/
 ;(function (name, root, Object, Array, Function, Date) {
-    var undefined
+    var undefined //jshint ignore:line
     ,   NIL   = ''
     ,   UNDEFINED = undefined + NIL
     ,   FUNCTION = 'function'
@@ -29,7 +30,7 @@
     )
     /*define*/([], function factory() {
         // -------------------------------------------------------------
-        var TRUE  = true
+        const TRUE  = true
         ,   FALSE = false
         ,   NULL  = null
         ,   noop  = Object.noop || function () {} // Object.noop - well, I practice such things :-)
@@ -49,11 +50,11 @@
 
         ,   LENGTH = 'length'
 
-        ,   version   = '1.2.0'
+        ,   version   = '1.3.0'
         ;
         // -------------------------------------------------------------
         // -------------------------------------------------------------
-        var TIMERS = typeof self !== UNDEFINED && isFunction(self.setTimeout)
+        let TIMERS = typeof self !== UNDEFINED && isFunction(self.setTimeout)
             ? self
             : root
         ;
@@ -64,11 +65,13 @@
             }
         }
 
-        var setTimeout    = TIMERS.setTimeout
-        ,   clearTimeout  = TIMERS.clearTimeout
+        const {
+            setTimeout,
+            clearTimeout,
+        }  = TIMERS
         ;
         // -------------------------------------------------------------
-        var allTypes = "*/" + "*"
+        const allTypes = "*/" + "*"
         ,   accepts = {
                 "*" : allTypes,
                 text: "text/plain",
@@ -79,11 +82,11 @@
         ;
         // -------------------------------------------------------------
         // AJAX method itself
-        var jajax = function jajax(o,done,fail,_u) {
-            var xhr = jajax.createXHR(FALSE);
+        const jajax = function jajax(o,done,fail,_u) {
+            const xhr = jajax.createXHR(FALSE);
             if ( !xhr ) {
                 fail && fail(NULL, 'xhr', 'Couldn\'t create XHR object');
-                return xhr
+                return xhr;
             }
 
             if ( type(o) == 'String' ) {
@@ -113,7 +116,7 @@
             }, o);
 
             var headers = {}
-            ,   setHeader = function(name, value) { headers[name.toLowerCase()] = [name, value] }
+            ,   setHeader = (name, value) => { headers[name.toLowerCase()] = [name, value]; }
             ,   method = o.method || o.type
             ,   url = o.url
             ,   abort_to
@@ -142,17 +145,19 @@
 
                             case 'script': {
                                 // http://perfectionkills.com/global-eval-what-are-the-options/
-                                (1,eval)(result);
+                                (1,eval)(result); //jshint ignore:line
                             } break;
 
-                            case 'text':
+                            case 'text': /*falls through*/
                             default: {
                                 // result = xh.responseText
                             } break;
                         }
-                    } catch (e) { error = e }
+                    } catch (e) { error = e; }
 
-                    if (error) onerror(error, 'parsererror', xh, res)
+                    if (error) {
+                        onerror(error, 'parsererror', xh, res);
+                    }
                     else {
                         if (o.success) {
                             o.success(result, xh.statusText, xh, res);
@@ -165,7 +170,7 @@
             ,   oncomplete = function (xh, res) {
                     abort_to && clearTimeout(abort_to);
 
-                    var response = xh.responseText || xh.response;
+                    let response = xh.responseText || xh.response;
 
                     // responseType from response headers
                     responseType = jajax.mimeToDataType(xh.getResponseHeader('content-type'));
@@ -212,28 +217,28 @@
             if(jajax.xhr_type == 'REQUEST') {
                 each(o.data, function (n,v,d) { if(v == NULL) delete d[n]; });
                 var h = {
-                        url: url,
-                        content: o.data ? o.data : {},
+                        url,
+                        content: o.data || {},
                         headers: {},
-                        onComplete: function(res) {
+                        onComplete(res) {
                             if(h.aborted) return;
                             var _xhr = {
-                                'getResponseHeader': function(name) {
+                                getResponseHeader(name) {
                                     return res.headers[name];
                                 },
-                                'status': res.status,
-                                'statusText': res.statusText,
-                                'responseText': res.text,
-                                'responseJSON': res.json
+                                status: res.status,
+                                statusText: res.statusText,
+                                responseText: res.text,
+                                responseJSON: res.json
                             };
                             oncomplete(_xhr, res);
                         }
                     }
                 ;
-                each(headers, function (i,a) { if(a[0] && a[0] != NULL) h.headers[a[0]] = a[1] });
-                if(o.contentType) h.contentType = o.contentType
+                each(headers, (i,a) => { if(a[0] && a[0] != NULL) h.headers[a[0]] = a[1]; });
+                if(o.contentType) h.contentType = o.contentType;
 
-                if (o.timeout > 0) abort_to = setTimeout(function() {
+                if (o.timeout > 0) abort_to = setTimeout(() => {
                     h.aborted = now();
                     // xhr.abort(); // @todo: abort request
                     onerror(NULL, 'timeout', xhr);
@@ -254,10 +259,10 @@
                             case 'delete': {
                                 // Firefox REQUEST object doesn't support DELETE,
                                 // need to create manual xhr object
-                                var XHR = require("sdk/net/xhr");
-                                var req = new XHR.XMLHttpRequest();
+                                const XHR = require("sdk/net/xhr");
+                                const req = new XHR.XMLHttpRequest();
                                 req.open(method, url);
-                                each(h.headers, function (n,v) { req.setRequestHeader(n, v) });
+                                each(h.headers, (n,v) => { req.setRequestHeader(n, v); });
                                 req.send();
                                 oncomplete(req);
                             } break;
@@ -269,15 +274,15 @@
             else {
                 xhr.open(method, url, TRUE);
 
-                each(headers, function (i,a) { if(a[1] != NULL) xhr.setRequestHeader( a[0], a[1] + NIL ) });
+                each(headers, (i,a) => { if(a[1] != NULL) xhr.setRequestHeader( a[0], a[1] + NIL ); });
 
-                if (o.timeout > 0) abort_to = setTimeout(function() {
+                if (o.timeout > 0) abort_to = setTimeout(() => {
                     xhr.onreadystatechange = noop;
                     xhr.abort();
                     onerror(NULL, 'timeout', xhr);
                 }, o.timeout);
 
-                var callback = function() {
+                const callback = () => {
                     if (xhr.readyState == 4) {
                         xhr.onreadystatechange = noop;
                         oncomplete(xhr);
@@ -321,39 +326,39 @@
         // -------------------------------------------------------------
         function each(o, f) {
             if(!o) return o;
-            var i, s, l;
             if ( isArray(o) || isArrayLike(o) ) {
-                for(i=0,l=o[LENGTH]>>>0; i<l; i++) if(hop.call(o, i)) {
-                    s = o[i];
+                for(let i=0,l=o[LENGTH]>>>0; i<l; i++) if(hop.call(o, i)) {
+                    let s = o[i];
                     if(f.call(s, i, s, o) === FALSE) return i;
                 }
             }
             else {
-                for(i in o) if(hop.call(o, i)) {
-                    s = o[i];
+                for(let i in o) if(hop.call(o, i)) {
+                    let s = o[i];
                     if(f.call(s, i, s, o) === FALSE) return i;
                 }
             }
-            return o
+            return o;
         }
         // -------------------------------------------------------------
         function extend(o) {
-            function cpy(i,s) { o[i] = s };
-            each(arguments, function (i,a) { i && each(a, cpy) });
-            return o
+            const cpy = (i,s) => { o[i] = s; };
+            each(arguments, (i,a) => { i && each(a, cpy); });
+            return o;
         }
 
         // -------------------------------------------------------------
         ;(function (escape, JSON, $) {
             function serialize(params, obj, traditional, scope) {
-                var type
-                ,   array = isArray(obj)
-                ,   hash = obj && obj !== root && !array && Object.getPrototypeOf(obj) === __
-                ;
+                const array = isArray(obj);
+                const hash = obj && obj !== root && !array && Object.getPrototypeOf(obj) === __;
+
                 each(obj, function(key, value) {
-                    type = isArray(value) ? 'array' : typeof(value);
-                    if (scope) key = traditional ? scope :
-                        scope + '[' + (hash || type == 'object' || type == 'array' ? key : '') + ']'
+                    let type = isArray(value) ? 'array' : typeof(value);
+                    if (scope) key = traditional
+                        ? scope
+                        : scope + '[' + (hash || type == 'object' || type == 'array' ? key : '') + ']'
+                    ;
                     // handle data in serializeArray() format
                     if (!scope && array) {
                         params.add(value.name, value.value);
@@ -365,60 +370,60 @@
                     else {
                         params.add(key, value);
                     }
-                })
-            };
+                });
+            }
 
-            $.param = function(obj, traditional) {
+            $.param = (obj, traditional) => {
                 var params = [];
-                params.add = function(k, v) { this.push( escape(k) + ( v == NULL ? '' : '=' + escape(v) ) ) };
+                params.add = function(k, v) { this.push( escape(k) + ( v == NULL ? '' : '=' + escape(v) ) ); };
                 serialize(params, obj, traditional);
                 return params.join('&').replace(/%20/g, '+');
             };
 
-            var scriptTypeRE = /^(?:text|application)\/javascript/i
+            const scriptTypeRE = /^(?:text|application)\/javascript/i
             ,   xmlTypeRE = /^(?:text|application)\/xml/i
             ,   jsonType = 'application/json'
             ,   htmlType = 'text/html'
             ;
-            $.mimeToDataType = function (mime) {
-                if (mime) mime = mime.split(';', 2)[0]
+            $.mimeToDataType = (mime) => {
+                if (mime) mime = mime.split(';', 2)[0];
                 return  mime && (
                             mime == htmlType ? 'html' :
                             mime == jsonType ? 'json' :
                             scriptTypeRE.test(mime) ? 'script' :
                             xmlTypeRE.test(mime) && 'xml'
                         ) || 'text'
+                ;
             };
 
             var _jdec = JSON && JSON.parse || root.json_decode;
-            $.parseJSON = function (text) {
-                try { return _jdec(text) }
+            $.parseJSON = (text) => {
+                try { return _jdec(text); }
                 catch(err) {
                     // Try to remove one line comments
                     var txt = text.replace(/[\n\r]+\s*\/\/[^\n\r]*/g, '');
                     if(txt != text) {
                         return _jdec(txt);
                     }
-                    throw err
+                    throw err;
                 }
-            }
+            };
 
             // Functions to create xhrs
-            $.createXHR = function (xhr) {
-                var meths = {
-                    XMLHttpRequest: function _XMLHttpRequest() { return new root.XMLHttpRequest() }
-                  , MSXML2 : function _MS2XMLHTTP()  { return new ActiveXObject( 'Msxml2.XMLHTTP' ) }
-                  , MSXML  : function _MSXMLHTTP()   { return new ActiveXObject( 'Microsoft.XMLHTTP' ) }
-                  , MSXML24: function _MS2XMLHTTP4() { return new ActiveXObject( 'Msxml2.XMLHTTP.4.0' ) }
+            $.createXHR = (xhr) => {
+                const meths = {
+                    XMLHttpRequest: () => new root.XMLHttpRequest()
+                  , MSXML2 : () => new ActiveXObject( 'Msxml2.XMLHTTP' )
+                  , MSXML  : () => new ActiveXObject( 'Microsoft.XMLHTTP' )
+                  , MSXML24: () => new ActiveXObject( 'Msxml2.XMLHTTP.4.0' )
                     // Lacks DELETE method
-                  , REQUEST: function _REQUEST() {
+                  , REQUEST() {
                         // synchronous only and experimental
                         // var XHR = require("sdk/net/xhr");
 
-                        var xhr = _REQUEST.xhr || (_REQUEST.xhr = require("sdk/request"));
-                        return xhr
+                        return require("sdk/request");
                     }
-                }
+                };
                 each(meths, function (type, _xhr) {
                     try {
                         xhr = _xhr();
@@ -427,8 +432,8 @@
                         return FALSE;
                     }
                     catch( e ) { }
-                })
-                return xhr
+                });
+                return xhr;
             };
 
             // Check if XHR is supported
@@ -443,4 +448,3 @@
     });
 }
 ('jajax', typeof global == 'undefined' ? this : global, Object, Array, Function, Date));
-
