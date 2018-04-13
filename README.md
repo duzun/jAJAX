@@ -9,7 +9,7 @@ You can use it even in Node.js with [node-XMLHttpRequest](https://github.com/dri
 ## Usage
 
 ```ts
-jajax(options: object, ondone: function, onerror: function)
+jajax(options: object, ondone: function, onerror: function).then(onresolve, onreject)
 /*  where
  *    options is "url" or {url:"url", dataType:"type", method: "GET", ...}, similar to jQuery.ajax(options)
  *
