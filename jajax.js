@@ -9,7 +9,7 @@
  *          On Firefox there is response object instead of XHR, xhr is a plain object
  *
  *  @license MIT
- *  @version 1.3.2
+ *  @version 1.3.3
  *  @git https://github.com/duzun/jAJAX
  *  @umd AMD, Browser, CommonJs
  *  @author DUzun.Me
@@ -50,7 +50,7 @@
 
         ,   LENGTH = 'length'
 
-        ,   version   = '1.3.2'
+        ,   version   = '1.3.3'
         ;
         // -------------------------------------------------------------
         // -------------------------------------------------------------
@@ -70,6 +70,8 @@
             clearTimeout,
         }  = TIMERS
         ;
+        // -------------------------------------------------------------
+        const emptyReg = /^\s*$/;
         // -------------------------------------------------------------
         const allTypes = "*/" + "*"
         ,   accepts = {
@@ -151,7 +153,7 @@
                     try {
                         switch(dataType) {
                             case 'json': {
-                                result = 'responseJSON' in xh ? xh.responseJSON : (/^\s*$/.test(result) ? NULL : jajax.parseJSON(result));
+                                result = 'responseJSON' in xh ? xh.responseJSON : (emptyReg.test(result) ? NULL : jajax.parseJSON(result));
                             } break;
 
                             case 'xml': {
@@ -160,7 +162,7 @@
 
                             case 'script': {
                                 // http://perfectionkills.com/global-eval-what-are-the-options/
-                                (1,eval)(result); //jshint ignore:line
+                                emptyReg.test(result) || (1,eval)(result); //jshint ignore:line
                             } break;
 
                             case 'text': /*falls through*/

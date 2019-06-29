@@ -1,6 +1,6 @@
 /*
  MIT
-  @version 1.3.2
+  @version 1.3.3
   @git https://github.com/duzun/jAJAX
   @umd AMD, Browser, CommonJs
   @author DUzun.Me
@@ -29,7 +29,7 @@
       return obj instanceof Array || type(obj) == "Array";
     };
     var LENGTH = "length";
-    var version = "1.3.2";
+    var version = "1.3.3";
     var TIMERS = typeof self !== UNDEFINED && isFunction(self.setTimeout) ? self : root;
     if (!isFunction(TIMERS.setTimeout)) {
       if (typeof require !== UNDEFINED) {
@@ -39,6 +39,7 @@
     var $jscomp$destructuring$var0 = TIMERS;
     var setTimeout = $jscomp$destructuring$var0.setTimeout;
     var clearTimeout = $jscomp$destructuring$var0.clearTimeout;
+    var emptyReg = /^\s*$/;
     var allTypes = "*/" + "*";
     var accepts = {"*":allTypes, text:"text/plain", html:"text/html", xml:"application/xml, text/xml", json:"application/json, text/javascript"};
     var jajax = function jajax(o, done, fail, _u) {
@@ -86,7 +87,7 @@
           switch(dataType) {
             case "json":
               {
-                result = "responseJSON" in xh ? xh.responseJSON : /^\s*$/.test(result) ? NULL : jajax.parseJSON(result);
+                result = "responseJSON" in xh ? xh.responseJSON : emptyReg.test(result) ? NULL : jajax.parseJSON(result);
               }
               break;
             case "xml":
@@ -96,7 +97,7 @@
               break;
             case "script":
               {
-                (1, eval)(result);
+                emptyReg.test(result) || (1, eval)(result);
               }
               break;
             case "text":
