@@ -6,13 +6,16 @@
  *          function ondone(result, statusText, xhr[, response]);
  *          function onerror(xhr, type: "error"|"parsererror"|"abort"|"timeout", error[, response]);
  *
- *          On Firefox there is response object instead of XHR, xhr is a plain object
+ *      jajax(options: object).then(onresolve, onreject)
+ *
+ *  Note: On Firefox there is response object instead of XHR, xhr is a plain object
+ *  Note 2: The error object of onreject also has error.xhr and error.response properties.
  *
  *  @license MIT
- *  @version 1.3.3
+ *  @version 1.4.0
  *  @git https://github.com/duzun/jAJAX
  *  @umd AMD, Browser, CommonJs
- *  @author DUzun.Me
+ *  @author Dumitru Uzun (https://DUzun.Me)
  */
 /*jshint esversion: 6*/
 /*global self, global, ActiveXObject, JSON, define, module, require*/
@@ -50,7 +53,7 @@
 
         ,   LENGTH = 'length'
 
-        ,   version   = '1.3.3'
+        ,   version   = '1.4.0'
         ;
         // -------------------------------------------------------------
         // -------------------------------------------------------------
@@ -85,12 +88,6 @@
         // -------------------------------------------------------------
         // AJAX method itself
         const jajax = function jajax(o,done,fail,_u) {
-            let xhr = jajax.createXHR(FALSE);
-            if ( !xhr ) {
-                fail && fail(NULL, 'xhr', `Couldn't create XHR object`);
-                return xhr;
-            }
-
             if ( type(o) == 'String' ) {
                 if ( done && type(done) == 'Object' ) {
                     done.url = o;
@@ -117,6 +114,22 @@
                 success    : NULL   // Function
             }, o);
 
+            if(!done && o.success) {
+                done = o.success;
+                delete o.success;
+            }
+
+            if(!fail && o.error) {
+                fail = o.error;
+                delete o.error;
+            }
+
+            let xhr = jajax.createXHR(FALSE);
+            if ( !xhr ) {
+                fail && fail(NULL, 'xhr', new Error(`Couldn't create XHR object`));
+                return xhr;
+            }
+
             var headers = {}
             ,   setHeader = (name, value) => { headers[name.toLowerCase()] = [name, value]; }
             ,   method = o.method || o.type
@@ -125,6 +138,25 @@
             ,   responseType
             ,   resolve, reject, then, _catch
             ,   onerror = function (error, type, xh, res) {
+                    if ( !error ) {
+                        error = xh && xh.statusText;
+                        if(!error) {
+                            error = `jajax error: ${type||'unknown'}`;
+                        }
+                    }
+                    if( typeof error == 'string' ) {
+                        error = new Error(error);
+                    }
+
+                    if(error) {
+                        if(type) {
+                            error.type = type;
+                        }
+                        if(xh && xh.status) {
+                            error.status = xh.status;
+                        }
+                    }
+
                     if(o.error) {
                         o.error(xh || res, type, error, res);
                     }
@@ -132,21 +164,14 @@
                         fail(xh || res, type, error, res);
                     }
                     if ( reject ) {
-                        if ( !error ) {
-                            if ( type ) {
-                                error = new Error(`jajax error: ${type}`);
-                                error.type = type;
-                            }
-                            else {
-                                error = new Error(`jajax error: unknown`);
-                            }
+                        if ( error ) {
                             error.xhr = xh || res;
                             error.response = res;
                         }
                         reject(error);
                     }
                 }
-            ,   onsuccecc = function (xh, result, res) {
+            ,   onsuccess = function (xh, result, res) {
                     var dataType = o.dataType || o.mimeType && jajax.mimeToDataType(o.mimeType) || responseType
                     ,   error
                     ;
@@ -210,7 +235,7 @@
 
 
                     if( (xh.status >= 200 && xh.status < 300) || xh.status == 304 ) {
-                        onsuccecc(xh, response, res);
+                        onsuccess(xh, response, res);
                     }
                     else {
                         onerror(xh.statusText || NULL, xh.status ? 'error' : 'abort', xh, res);
@@ -218,7 +243,8 @@
                 }
             ;
 
-            if ( typeof Promise == 'function' ) {
+            // Return a Promise when there is no done nor fail callbacks
+            if ( !done && !fail && typeof Promise == 'function' ) {
                 let prom = new Promise((_resolve, _reject) => {
                     resolve = _resolve;
                     reject = _reject;
@@ -227,12 +253,14 @@
                 _catch = prom.catch.bind(prom);
             }
 
-            each({'X-Requested-With': 'XMLHttpRequest'}, setHeader);
+            each({
+                'X-Requested-With': 'XMLHttpRequest',
+                Accept: (accepts[o.dataType] ? accepts[o.dataType] + ', ': '') + allTypes + '; q=0.01',
+            }, setHeader);
 
             if(o.contentType) {
                 setHeader('Content-Type', o.contentType);
             }
-            setHeader('Accept', (accepts[o.dataType] ? accepts[o.dataType] + ', ': '') + allTypes + '; q=0.01');
 
             each(o.headers, setHeader);
 
@@ -436,20 +464,20 @@
                 ;
             };
 
-            var _jdec = JSON && JSON.parse || root.json_decode;
+            const json_decode = JSON && JSON.parse || root.json_decode;
             $.parseJSON = (text) => {
-                try { return _jdec(text); }
+                try { return json_decode(text); }
                 catch(err) {
                     // Try to remove one line comments
-                    var txt = text.replace(/[\n\r]+\s*\/\/[^\n\r]*/g, '');
+                    let txt = text.replace(/[\n\r]+\s*\/\/[^\n\r]*/g, '');
                     if(txt != text) {
-                        return _jdec(txt);
+                        return json_decode(txt);
                     }
                     throw err;
                 }
             };
 
-            // Functions to create xhrs
+            // Functions to create xhr
             $.createXHR = (xhr) => {
                 const meths = {
                     XMLHttpRequest: () => new root.XMLHttpRequest()

@@ -1,9 +1,9 @@
 /*
  MIT
-  @version 1.3.3
+  @version 1.4.0
   @git https://github.com/duzun/jAJAX
   @umd AMD, Browser, CommonJs
-  @author DUzun.Me
+  @author Dumitru Uzun (https://DUzun.Me)
 */
 (function(name, root, Object, Array, Function, Date) {
   var undefined, NIL = "", UNDEFINED = undefined + NIL, FUNCTION = "function";
@@ -29,7 +29,7 @@
       return obj instanceof Array || type(obj) == "Array";
     };
     var LENGTH = "length";
-    var version = "1.3.3";
+    var version = "1.4.0";
     var TIMERS = typeof self !== UNDEFINED && isFunction(self.setTimeout) ? self : root;
     if (!isFunction(TIMERS.setTimeout)) {
       if (typeof require !== UNDEFINED) {
@@ -43,11 +43,6 @@
     var allTypes = "*/" + "*";
     var accepts = {"*":allTypes, text:"text/plain", html:"text/html", xml:"application/xml, text/xml", json:"application/json, text/javascript"};
     var jajax = function jajax(o, done, fail, _u) {
-      var xhr = jajax.createXHR(FALSE);
-      if (!xhr) {
-        fail && fail(NULL, "xhr", "Couldn't create XHR object");
-        return xhr;
-      }
       if (type(o) == "String") {
         if (done && type(done) == "Object") {
           done.url = o;
@@ -59,9 +54,39 @@
         }
       }
       o = extend({url:"", type:"GET", cache:FALSE, timeout:NULL, contentType:"application/x-www-form-urlencoded; charset=UTF-8", dataType:"", mimeType:"", data:NULL, headers:NULL, error:NULL, success:NULL}, o);
+      if (!done && o.success) {
+        done = o.success;
+        delete o.success;
+      }
+      if (!fail && o.error) {
+        fail = o.error;
+        delete o.error;
+      }
+      var xhr = jajax.createXHR(FALSE);
+      if (!xhr) {
+        fail && fail(NULL, "xhr", new Error("Couldn't create XHR object"));
+        return xhr;
+      }
       var headers = {}, setHeader = function(name, value) {
         headers[name.toLowerCase()] = [name, value];
       }, method = o.method || o.type, url = o.url, abort_to, responseType, resolve, reject, then, _catch, onerror = function(error, type, xh, res) {
+        if (!error) {
+          error = xh && xh.statusText;
+          if (!error) {
+            error = "jajax error: " + (type || "unknown");
+          }
+        }
+        if (typeof error == "string") {
+          error = new Error(error);
+        }
+        if (error) {
+          if (type) {
+            error.type = type;
+          }
+          if (xh && xh.status) {
+            error.status = xh.status;
+          }
+        }
         if (o.error) {
           o.error(xh || res, type, error, res);
         }
@@ -69,19 +94,13 @@
           fail(xh || res, type, error, res);
         }
         if (reject) {
-          if (!error) {
-            if (type) {
-              error = new Error("jajax error: " + type);
-              error.type = type;
-            } else {
-              error = new Error("jajax error: unknown");
-            }
+          if (error) {
             error.xhr = xh || res;
             error.response = res;
           }
           reject(error);
         }
-      }, onsuccecc = function(xh, result, res) {
+      }, onsuccess = function(xh, result, res) {
         var dataType = o.dataType || o.mimeType && jajax.mimeToDataType(o.mimeType) || responseType, error;
         try {
           switch(dataType) {
@@ -137,12 +156,12 @@
           }
         }
         if (xh.status >= 200 && xh.status < 300 || xh.status == 304) {
-          onsuccecc(xh, response, res);
+          onsuccess(xh, response, res);
         } else {
           onerror(xh.statusText || NULL, xh.status ? "error" : "abort", xh, res);
         }
       };
-      if (typeof Promise == "function") {
+      if (!done && !fail && typeof Promise == "function") {
         var prom = new Promise(function(_resolve, _reject) {
           resolve = _resolve;
           reject = _reject;
@@ -150,11 +169,10 @@
         then = prom.then.bind(prom);
         _catch = prom["catch"].bind(prom);
       }
-      each({"X-Requested-With":"XMLHttpRequest"}, setHeader);
+      each({"X-Requested-With":"XMLHttpRequest", Accept:(accepts[o.dataType] ? accepts[o.dataType] + ", " : "") + allTypes + "; q=0.01"}, setHeader);
       if (o.contentType) {
         setHeader("Content-Type", o.contentType);
       }
-      setHeader("Accept", (accepts[o.dataType] ? accepts[o.dataType] + ", " : "") + allTypes + "; q=0.01");
       each(o.headers, setHeader);
       method = method.toLowerCase();
       if (o.data && (method == "get" || method == "head")) {
@@ -343,14 +361,14 @@
         }
         return mime && (mime == htmlType ? "html" : mime == jsonType ? "json" : scriptTypeRE.test(mime) ? "script" : xmlTypeRE.test(mime) && "xml") || "text";
       };
-      var _jdec = JSON && JSON.parse || root.json_decode;
+      var json_decode = JSON && JSON.parse || root.json_decode;
       $.parseJSON = function(text) {
         try {
-          return _jdec(text);
+          return json_decode(text);
         } catch (err) {
           var txt = text.replace(/[\n\r]+\s*\/\/[^\n\r]*/g, "");
           if (txt != text) {
-            return _jdec(txt);
+            return json_decode(txt);
           }
           throw err;
         }
