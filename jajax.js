@@ -2,6 +2,15 @@
  *  jQuery-like AJAX for any environment
  *  (Browser, Firefox, Chrome and Safari Extensions).
  *
+ *  @license MIT
+ *  @version 1.5.0
+ *  @git https://github.com/duzun/jAJAX
+ *  @umd AMD, Browser, CommonJs
+ *  @author Dumitru Uzun (https://DUzun.Me)
+ */
+
+/* Usage:
+ *
  *  Ex: jajax(options: object, ondone: function, onerror: function)
  *          function ondone(result, statusText, xhr[, response]);
  *          function onerror(xhr, type: "error"|"parsererror"|"abort"|"timeout", error[, response]);
@@ -11,39 +20,25 @@
  *  Note: On Firefox there is response object instead of XHR, xhr is a plain object
  *  Note 2: The error object of onreject also has error.xhr and error.response properties.
  *
- *  @license MIT
- *  @version 1.4.0
- *  @git https://github.com/duzun/jAJAX
- *  @umd AMD, Browser, CommonJs
- *  @author Dumitru Uzun (https://DUzun.Me)
  */
-/*jshint esversion: 6*/
-/*global self, global, ActiveXObject, JSON, define, module, require*/
-;(function (name, root, Object, Array, Function, Date) {
-    var undefined //jshint ignore:line
-    ,   NIL   = ''
-    ,   UNDEFINED = undefined + NIL
-    ,   FUNCTION = 'function'
-    ;
-    (typeof define != FUNCTION || !define.amd
-        ? typeof module != UNDEFINED && module.exports
-            ? function (deps, factory) { module.exports = factory(); } // CommonJs
-            : function (deps, factory) { root[name] = factory(); } // Browser
-        : define // AMD
-    )
-    /*define*/([], function factory() {
+
+/*globals self, global, ActiveXObject, JSON, require*/
+
+const root = typeof globalThis == 'undefined' ? typeof global == 'undefined' ? self : global : globalThis;
+var undefined; //jshint ignore:line
+
         // -------------------------------------------------------------
         const TRUE  = true
         ,   FALSE = false
         ,   NULL  = null
-        ,   noop  = Object.noop || function () {} // Object.noop - well, I practice such things :-)
+        ,   noop  = () => {}
         ,   __    = Object.prototype
         ,   hop   = __.hasOwnProperty
         ,   tos   = __.toString
 
-        ,   now = typeof Date.now == FUNCTION
-                    ? function () { return Date.now(); }
-                    : function () { return new Date.getTime(); }
+        ,   now = typeof Date.now == 'function'
+                    ? () => Date.now()
+                    : () => new Date.getTime()
 
         ,   isArray = isFunction(Array.isArray)
                 ? Array.isArray
@@ -53,16 +48,16 @@
 
         ,   LENGTH = 'length'
 
-        ,   version   = '1.4.0'
+        ,   version   = '1.5.0'
         ;
         // -------------------------------------------------------------
         // -------------------------------------------------------------
-        let TIMERS = typeof self !== UNDEFINED && isFunction(self.setTimeout)
+        let TIMERS = typeof self !== 'undefined' && isFunction(self.setTimeout)
             ? self
             : root
         ;
         if( !isFunction(TIMERS.setTimeout) ) {
-            if( typeof require !== UNDEFINED ) {
+            if( typeof require !== 'undefined' ) {
                 // Firefox
                 TIMERS = require('sdk/timers');
             }
@@ -87,7 +82,7 @@
         ;
         // -------------------------------------------------------------
         // AJAX method itself
-        const jajax = function jajax(o,done,fail,_u) {
+        export default function jajax(o,done,fail,_u) {
             if ( type(o) == 'String' ) {
                 if ( done && type(done) == 'Object' ) {
                     done.url = o;
@@ -337,7 +332,7 @@
             else {
                 xhr.open(method, url, TRUE);
 
-                each(headers, (i,a) => { if(a[1] != NULL) xhr.setRequestHeader( a[0], a[1] + NIL ); });
+                each(headers, (i,a) => { if(a[1] != NULL) xhr.setRequestHeader( a[0], a[1] + '' ); });
 
                 if (o.timeout > 0) abort_to = setTimeout(() => {
                     xhr.onreadystatechange = noop;
@@ -370,7 +365,7 @@
             }
 
             return xhr;
-        };
+        }
 
 
         // -------------------------------------------------------------
@@ -422,7 +417,7 @@
                 const hash = obj && obj !== root && !array && Object.getPrototypeOf(obj) === __;
 
                 each(obj, function(key, value) {
-                    let type = isArray(value) ? 'array' : typeof(value);
+                    let type = isArray(value) ? 'array' : typeof value;
                     if (scope) key = traditional
                         ? scope
                         : scope + '[' + (hash || type == 'object' || type == 'array' ? key : '') + ']'
@@ -516,10 +511,11 @@
         }
         (encodeURIComponent, JSON, jajax));
 
-        jajax.name = name;
         jajax.version = version;
 
-        return jajax;
-    });
-}
-('jajax', typeof global == 'undefined' ? this : global, Object, Array, Function, Date));
+        // Export some helpers
+        jajax.each = each;
+        jajax.type = type;
+        jajax.isFunction = isFunction;
+        jajax.isArray = isArray;
+        jajax.isArrayLike = isArrayLike;

@@ -1,11 +1,11 @@
 {
   "name": "jajax",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "jQuery-like AJAX method for multiple environments",
   "author": {
     "name": "Dumitru Uzun",
     "email": "contact@duzun.me",
-    "url": "http://DUzun.Me/"
+    "url": "https://DUzun.Me/"
   },
   "keywords": [
     "AJAX",
@@ -18,14 +18,13 @@
     "jQuery"
   ],
   "license": "MIT",
-  "main": "jajax.js",
+  "main": "dist/jajax.js",
   "homepage": "https://github.com/duzun/jAJAX",
   "ignore": [
     "**/.*",
     "node_modules",
     "bower_components",
     "spec",
-    "tools",
-    "package.json"
+    "tools"
   ]
 }

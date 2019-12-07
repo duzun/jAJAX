@@ -1,6 +1,6 @@
 {
   "name": "jajax.js",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "jQuery-like AJAX method for multiple environments",
   "author": {
     "name": "Dumitru Uzun",
@@ -49,21 +49,28 @@
   ],
   "readmeFilename": "README.md",
   "scripts": {
-    "test": "jasmine-node spec",
+    "test": "npx jest",
     "verup": "verup",
-    "build": "npm test && gccs --compilation_level WHITESPACE_ONLY --formatting pretty_print -- jajax.js dist/jajax.js && gccs dist/jajax.js",
+    "build": "npx rollup -c rollup.config.js && npm test",
+    "build.min": "npm run build && gccs dist/jajax.js",
+    "build:gccs": "npm test && gccs --compilation_level WHITESPACE_ONLY --formatting pretty_print -- jajax.js dist/jajax.js && gccs dist/jajax.js",
     "doc": "docco jajax.js"
   },
   "peerDependencies": {
     "xmlhttprequest": "*"
   },
   "devDependencies": {
+    "@babel/core": "^7.7.5",
+    "@babel/preset-env": "^7.7.5",
     "docco": "^0.8.0",
-    "gccs": "^1.3.0",
-    "jasmine-node": "^3.0.0",
-    "verup": "^1.7.0"
+    "esm": "^3.2.25",
+    "gccs": "^1.3",
+    "rollup-plugin-babel": "^4.3.3",
+    "verup": "^1.7.0",
+    "xmlhttprequest": "^1.8.0"
   },
   "jshintConfig": {
+    "esversion": 9,
     "laxbreak": true,
     "laxcomma": true,
     "undef": true,
