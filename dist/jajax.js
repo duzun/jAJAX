@@ -23,7 +23,7 @@
    *  (Browser, Firefox, Chrome and Safari Extensions).
    *
    *  @license MIT
-   *  @version 1.5.0
+   *  @version 1.5.1
    *  @git https://github.com/duzun/jAJAX
    *  @umd AMD, Browser, CommonJs
    *  @author Dumitru Uzun (https://DUzun.Me)
@@ -63,7 +63,7 @@
     return obj instanceof Array || type(obj) == 'Array';
   },
       LENGTH = 'length',
-      version = '1.5.0'; // -------------------------------------------------------------
+      version = '1.5.1'; // -------------------------------------------------------------
   // -------------------------------------------------------------
 
 
@@ -574,15 +574,19 @@
 
 
     $.xhr_supported = $.createXHR(FALSE);
-  })(encodeURIComponent, JSON, jajax);
+  })(encodeURIComponent, JSON, jajax); // Export some helpers
 
-  jajax.version = version; // Export some helpers
 
-  jajax.each = each;
-  jajax.type = type;
-  jajax.isFunction = isFunction;
-  jajax.isArray = isArray;
-  jajax.isArrayLike = isArrayLike;
+  extend(jajax, {
+    version: version,
+    accepts: accepts,
+    each: each,
+    extend: extend,
+    type: type,
+    isFunction: isFunction,
+    isArray: isArray,
+    isArrayLike: isArrayLike
+  });
 
   return jajax;
 
