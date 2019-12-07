@@ -20,6 +20,8 @@ matrix:
         - node_js: "5.0"
         - node_js: "4.0"
 
+before_script:
+  - npm i -g npx
 
 deploy:
   provider: npm
