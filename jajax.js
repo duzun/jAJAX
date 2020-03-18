@@ -58,7 +58,7 @@ let TIMERS = typeof self !== 'undefined' && isFunction(self.setTimeout)
 ;
 if( !isFunction(TIMERS.setTimeout) ) {
     if( typeof require !== 'undefined' ) {
-        // Firefox
+        // Firefox Addon
         TIMERS = require('sdk/timers');
     }
 }
