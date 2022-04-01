@@ -1,4 +1,4 @@
-jAJAX [![Build Status](https://travis-ci.org/duzun/jAJAX.svg?branch=master)](https://travis-ci.org/duzun/jAJAX)
+jAJAX [![Build Status](https://travis-ci.com/duzun/jAJAX.svg?branch=master)](https://app.travis-ci.com/duzun/jAJAX)
 =====
 
 jQuery-like AJAX method for multiple environments:
