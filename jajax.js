@@ -3,7 +3,7 @@
  *  (Browser, Firefox, Chrome and Safari Extensions).
  *
  *  @license MIT
- *  @version 1.5.1
+ *  @version 1.5.2
  *  @git https://github.com/duzun/jAJAX
  *  @umd AMD, Browser, CommonJs
  *  @author Dumitru Uzun (https://DUzun.Me)
@@ -28,9 +28,7 @@ const root = typeof globalThis == 'undefined' ? typeof global == 'undefined' ? s
 var undefined; //jshint ignore:line
 
 // -------------------------------------------------------------
-const TRUE  = true
-,   FALSE = false
-,   NULL  = null
+const NULL  = null
 ,   noop  = () => {}
 ,   __    = Object.prototype
 ,   hop   = __.hasOwnProperty
@@ -48,7 +46,7 @@ const TRUE  = true
 
 ,   LENGTH = 'length'
 
-,   version   = '1.5.1'
+,   version   = '1.5.2'
 ;
 // -------------------------------------------------------------
 // -------------------------------------------------------------
@@ -98,7 +96,7 @@ export default function jajax(o,done,fail,_u) {
     o = extend({
         url        : '',    // String
         type       : 'GET', // String - alias of .method
-        cache      : FALSE, // Bool
+        cache      : false, // Bool
         timeout    : NULL,  // Number
         contentType: 'application/x-www-form-urlencoded; charset=UTF-8', // String
         dataType   : '',    // String
@@ -119,7 +117,7 @@ export default function jajax(o,done,fail,_u) {
         delete o.error;
     }
 
-    let xhr = jajax.createXHR(FALSE);
+    let xhr = jajax.createXHR(false);
     if ( !xhr ) {
         fail && fail(NULL, 'xhr', new Error(`Couldn't create XHR object`));
         return xhr;
@@ -330,7 +328,7 @@ export default function jajax(o,done,fail,_u) {
         }
     }
     else {
-        xhr.open(method, url, TRUE);
+        xhr.open(method, url, true);
 
         each(headers, (i,a) => { if(a[1] != NULL) xhr.setRequestHeader( a[0], a[1] + '' ); });
 
@@ -392,13 +390,13 @@ function each(o, f) {
     if ( isArray(o) || isArrayLike(o) ) {
         for(let i=0,l=o[LENGTH]>>>0; i<l; i++) if(hop.call(o, i)) {
             let s = o[i];
-            if(f.call(s, i, s, o) === FALSE) return i;
+            if(f.call(s, i, s, o) === false) return i;
         }
     }
     else {
         for(let i in o) if(hop.call(o, i)) {
             let s = o[i];
-            if(f.call(s, i, s, o) === FALSE) return i;
+            if(f.call(s, i, s, o) === false) return i;
         }
     }
     return o;
@@ -499,7 +497,7 @@ function extend(o) {
                 xhr = _xhr();
                 $.createXHR = _xhr;
                 $.xhr_type = type;
-                return FALSE;
+                return false;
             }
             catch( e ) { }
         });
@@ -507,7 +505,7 @@ function extend(o) {
     };
 
     // Check if XHR is supported
-    $.xhr_supported = $.createXHR(FALSE);
+    $.xhr_supported = $.createXHR(false);
 }
 (encodeURIComponent, JSON, jajax));
 
