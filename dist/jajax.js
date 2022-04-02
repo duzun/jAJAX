@@ -1,21 +1,17 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (global = global || self, global.jajax = factory());
-}(this, (function () { 'use strict';
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.jajax = factory());
+})(this, (function () { 'use strict';
 
   function _typeof(obj) {
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-      _typeof = function (obj) {
-        return typeof obj;
-      };
-    } else {
-      _typeof = function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      };
-    }
+    "@babel/helpers - typeof";
 
-    return _typeof(obj);
+    return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
+      return typeof obj;
+    } : function (obj) {
+      return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    }, _typeof(obj);
   }
 
   /**
@@ -23,7 +19,7 @@
    *  (Browser, Firefox, Chrome and Safari Extensions).
    *
    *  @license MIT
-   *  @version 1.5.1
+   *  @version 1.5.2
    *  @git https://github.com/duzun/jAJAX
    *  @umd AMD, Browser, CommonJs
    *  @author Dumitru Uzun (https://DUzun.Me)
@@ -47,9 +43,7 @@
   var undefined$1; //jshint ignore:line
   // -------------------------------------------------------------
 
-  var TRUE = true,
-      FALSE = false,
-      NULL = null,
+  var NULL = null,
       noop = function noop() {},
       __ = Object.prototype,
       hop = __.hasOwnProperty,
@@ -63,7 +57,7 @@
     return obj instanceof Array || type(obj) == 'Array';
   },
       LENGTH = 'length',
-      version = '1.5.1'; // -------------------------------------------------------------
+      version = '1.5.2'; // -------------------------------------------------------------
   // -------------------------------------------------------------
 
 
@@ -71,7 +65,7 @@
 
   if (!isFunction(TIMERS.setTimeout)) {
     if (typeof require !== 'undefined') {
-      // Firefox
+      // Firefox Addon
       TIMERS = require('sdk/timers');
     }
   }
@@ -111,7 +105,7 @@
       // String
       type: 'GET',
       // String - alias of .method
-      cache: FALSE,
+      cache: false,
       // Bool
       timeout: NULL,
       // Number
@@ -141,7 +135,7 @@
       delete o.error;
     }
 
-    var xhr = jajax.createXHR(FALSE);
+    var xhr = jajax.createXHR(false);
 
     if (!xhr) {
       fail && fail(NULL, 'xhr', new Error("Couldn't create XHR object"));
@@ -381,7 +375,7 @@
         xhr = _xhr;
       }
     } else {
-      xhr.open(method, url, TRUE);
+      xhr.open(method, url, true);
       each(headers, function (i, a) {
         if (a[1] != NULL) xhr.setRequestHeader(a[0], a[1] + '');
       });
@@ -445,14 +439,14 @@
       for (var i = 0, l = o[LENGTH] >>> 0; i < l; i++) {
         if (hop.call(o, i)) {
           var s = o[i];
-          if (f.call(s, i, s, o) === FALSE) return i;
+          if (f.call(s, i, s, o) === false) return i;
         }
       }
     } else {
       for (var _i in o) {
         if (hop.call(o, _i)) {
           var _s = o[_i];
-          if (f.call(_s, _i, _s, o) === FALSE) return _i;
+          if (f.call(_s, _i, _s, o) === false) return _i;
         }
       }
     }
@@ -486,10 +480,10 @@
           params.add(value.name, value.value);
         } // recurse into nested objects
         else if (type == "array" || !traditional && type == "object") {
-            serialize(params, value, traditional, key);
-          } else {
-            params.add(key, value);
-          }
+          serialize(params, value, traditional, key);
+        } else {
+          params.add(key, value);
+        }
       });
     }
 
@@ -566,14 +560,14 @@
           xhr = _xhr();
           $.createXHR = _xhr;
           $.xhr_type = type;
-          return FALSE;
+          return false;
         } catch (e) {}
       });
       return xhr;
     }; // Check if XHR is supported
 
 
-    $.xhr_supported = $.createXHR(FALSE);
+    $.xhr_supported = $.createXHR(false);
   })(encodeURIComponent, JSON, jajax); // Export some helpers
 
 
@@ -590,4 +584,4 @@
 
   return jajax;
 
-})));
+}));
