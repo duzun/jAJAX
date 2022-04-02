@@ -18,18 +18,19 @@
               ? function (deps, factory) {
                     var req = require;
                     var mod = '..';
-                    try {
-                        const esm = require('esm')(module);
-                        req = (id) => {
-                            let mod = esm(id);
-                            return mod.default || mod;
-                        }
-                        mod = '../jajax';
-                    } catch(err) {};
+                    // try {
+                    //     const esm = require('esm')(module);
+                    //     req = (id) => {
+                    //         let mod = esm(id);
+                    //         return mod.default || mod;
+                    //     };
+                    //     mod = '../jajax';
+                    // } catch(err) {};
 
                     module.exports = factory(require, module, req(mod));
                 }
               : function (deps, factory) { root[name] = factory(require, undefined, root.jajax); }
+              ;
       }
       (typeof require == 'function' ? require : function (id){return root[id]}))
   )
